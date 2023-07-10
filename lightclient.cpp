@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023
+ * Yann Charbon <yann.charbon@heig-vd.h>
+ *
+ */
+
 /*******************************************************************************
  *
  * Copyright (c) 2013, 2014, 2015 Intel Corporation and others.
@@ -85,21 +91,16 @@ extern "C" {
 
 #define STR(x)  #x
 
-#define ENDPOINT_NAME "MBED-OS-WAKAAMA"
+#define CLIENT_ENDPOINT_NAME "m2mMbed"
 //Connect to the Leshan test server as default: http://leshan.eclipse.org
-//#define LESHAN_SERVER "2a01:111:f100:9001::1761:93fa" // LESHAN
-#define LESHAN_SERVER "2a05:d018:1db1:3d01:a672:42eb:159a:86e"    // Eric
-//#define LESHAN_SERVER "2a0c:9a40:2505:de00:f265:3568:22a1:7c9f" // Yann
-#define LESHAN_PORT 5683
-#define UDP_TIMEOUT 60000
-#define UDP_PORT 5683
-
+#define M2M_SERVER_URL "2a01:111:f100:9001::1761:93fa" // LESHAN
+#define M2M_SERVER_PORT 5683
 
 extern lwm2m_object_t * get_object_device(void);
 extern void free_object_device(lwm2m_object_t * objectP);
 extern lwm2m_object_t * get_server_object(void);
 extern void free_server_object(lwm2m_object_t * object);
-extern lwm2m_object_t * get_security_object(void);
+extern lwm2m_object_t * get_security_object(char * server_addr, int port_number);
 extern void free_security_object(lwm2m_object_t * objectP);
 extern char * get_server_uri(lwm2m_object_t * objectP, uint16_t secObjInstID);
 extern lwm2m_object_t * get_test_object(void);
@@ -121,8 +122,7 @@ typedef struct
 client_data_t data;
 lwm2m_context_t * lwm2mH = NULL;
 
-static void print_interface_addr(int id)
-{
+static void print_interface_addr(int id) {
     printf("Interface %d:\n", id);
 
     uint8_t address_buf[128];
@@ -165,16 +165,6 @@ int init_network()
     printf("IP address: %s\n", a.get_ip_address() ? a.get_ip_address() : "None");
 
     print_interface_addr(1);
-
-    //wait(2.0);
-
-    //test code which only used to verify the connect functinon
-    //test_tcp(eth);
-    //test_udp(eth);
-
-    //clt_data->udp_socket.open(clt_data->eth_iface);
-    ////udp.set_timeout(UDP_TIMEOUT);
-    //clt_data->udp_socket.bind(UDP_PORT);
 
     return ret;
 }
@@ -267,19 +257,6 @@ void lwm2m_close_connection(void * sessionH,
             lwm2m_free(targetP);
         }
     }
-}
-
-void print_usage(void)
-{
-    printf("Usage: lwm2mclient [OPTION]\r\n");
-    printf("Launch a LWM2M client.\r\n");
-    printf("Options:\r\n");
-    printf("  -n NAME\tSet the endpoint name of the Client. Default: testlightclient\r\n");
-    printf("  -l PORT\tSet the local UDP port of the Client. Default: 5683\r\n");
-    printf("  -4\t\tUse IPv4 connection. Default: IPv6 connection\r\n");
-    printf("  -S BYTES\tCoAP block size. Options: 16, 32, 64, 128, 256, 512, 1024. Default: %" PRIu16 "\r\n",
-            (uint16_t)LWM2M_COAP_DEFAULT_BLOCK_SIZE);
-    printf("\r\n");
 }
 
 void print_state(lwm2m_context_t * lwm2mH)
@@ -404,72 +381,17 @@ int main(int argc, char *argv[])
 
     lwm2m_object_t * objArray[OBJ_COUNT];
 
-    const char * localPort = "5683";
-    const char *name = "m2mMbed";
-
     int result;
-    int opt;
 
     memset(&data, 0, sizeof(client_data_t));
 
     data.addressFamily = ADDRESS_IPV6;
 
-    opt = 1;
-    while (opt < argc)
-    {
-        if (argv[opt] == NULL
-            || argv[opt][0] != '-'
-            || argv[opt][2] != 0)
-        {
-            print_usage();
-            return 0;
-        }
-        switch (argv[opt][1])
-        {
-        case 'n':
-            opt++;
-            if (opt >= argc)
-            {
-                print_usage();
-                return 0;
-            }
-            name = argv[opt];
-            break;
-        case 'l':
-            opt++;
-            if (opt >= argc)
-            {
-                print_usage();
-                return 0;
-            }
-            localPort = argv[opt];
-            break;
-        case 'S':
-            opt++;
-            if (opt >= argc) {
-                print_usage();
-                return 0;
-            }
-            uint16_t coap_block_size_arg;
-            if (1 == sscanf(argv[opt], "%" SCNu16, &coap_block_size_arg) &&
-                lwm2m_set_coap_block_size(coap_block_size_arg)) {
-                break;
-            } else {
-                print_usage();
-                return 0;
-            }
-        default:
-            print_usage();
-            return 0;
-        }
-        opt += 1;
-    }
-
     /*
      *This call an internal function that create an IPv6 socket on the port 5683.
      */
-    fprintf(stderr, "Trying to bind LWM2M Client to port %s\r\n", localPort);
-    data.sock = create_socket(atoi(localPort), data.addressFamily);
+    fprintf(stderr, "Trying to bind LWM2M Client to port %d\r\n", M2M_SERVER_PORT);
+    data.sock = create_socket(M2M_SERVER_PORT, data.addressFamily);
     if (data.sock < 0)
     {
         fprintf(stderr, "Failed to open socket: %d %s\r\n", errno, strerror(errno));
@@ -480,7 +402,7 @@ int main(int argc, char *argv[])
      * Now the main function fill an array with each object, this list will be later passed to liblwm2m.
      * Those functions are located in their respective object file.
      */
-    objArray[0] = get_security_object();
+    objArray[0] = get_security_object(M2M_SERVER_URL, M2M_SERVER_PORT);
     if (NULL == objArray[0])
     {
         fprintf(stderr, "Failed to create security object\r\n");
@@ -526,13 +448,13 @@ int main(int argc, char *argv[])
      * the number of objects we will be passing through and the objects array
      */
     printf("lwm2m_configure\n");
-    result = lwm2m_configure(lwm2mH, name, NULL, NULL, OBJ_COUNT, objArray);
+    result = lwm2m_configure(lwm2mH, CLIENT_ENDPOINT_NAME, NULL, NULL, OBJ_COUNT, objArray);
     if (result != 0)
     {
         fprintf(stderr, "lwm2m_configure() failed: 0x%X\r\n", result);
         return -1;
     }
-    fprintf(stdout, "LWM2M Client \"%s\" started on port %s.\r\nUse Ctrl-C to exit.\r\n\n", name, localPort);
+    fprintf(stdout, "LWM2M Client \"%s\" started on port %d.\r\nUse Ctrl-C to exit.\r\n\n", CLIENT_ENDPOINT_NAME, M2M_SERVER_PORT);
 
     /*
      * We now enter in a while loop that will handle the communications from the server
@@ -556,19 +478,15 @@ void lwm2m_main_thread_task() {
         print_state(lwm2mH);
 
         /*
-            * This function does two things:
-            *  - first it does the work needed by liblwm2m (eg. (re)sending some packets).
-            *  - Secondly it adjusts the timeout value (default 60s) depending on the state of the transaction
-            *    (eg. retransmission) and the time before the next operation
-            */
-        //printf("lwm2m_step\n");
+        * This function does two things:
+        *  - first it does the work needed by liblwm2m (eg. (re)sending some packets).
+        *  - Secondly it adjusts the timeout value (default 60s) depending on the state of the transaction
+        *    (eg. retransmission) and the time before the next operation
+        */
         int result = lwm2m_step(lwm2mH, &(tv.tv_sec));
-        if (result != 0)
-        {
+        if (result != 0) {
             fprintf(stderr, "lwm2m_step() failed: 0x%X\r\n", result);
         }
-        //printf("%s, flags_wait_any_for %d\n", __func__, tv.tv_sec);
-        //lwm2m_main_thread_timeout_timer.attach(lwm2m_main_thread_timeout_timer_cb, seconds(tv.tv_sec));
         ThisThread::flags_wait_any_for(0x1, seconds(tv.tv_sec));
     }
 }
@@ -578,18 +496,15 @@ void lwm2m_handle_incoming_socket_data(ns_address_t *addr, uint8_t *buf, size_t 
     connection_t * connP;
 
     connP = connection_find(data.connList, addr, sizeof(ns_address_t));
-    if (connP != NULL)
-    {
+    if (connP != NULL){
         /*
-            * Let liblwm2m respond to the query depending on the context
-            */
+        * Let liblwm2m respond to the query depending on the context
+        */
         lwm2m_handle_packet(lwm2mH, buf, len, connP);
-    }
-    else
-    {
+    } else {
         /*
-            * This packet comes from an unknown peer
-            */
+        * This packet comes from an unknown peer
+        */
         fprintf(stderr, "received bytes ignored!\r\n");
     }
 

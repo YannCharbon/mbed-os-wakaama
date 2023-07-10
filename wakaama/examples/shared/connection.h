@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023
+ * Yann Charbon <yann.charbon@heig-vd.h>
+ *
+ */
+
 /*******************************************************************************
  *
  * Copyright (c) 2013, 2014 Intel Corporation and others.

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023
+ * Yann Charbon <yann.charbon@heig-vd.h>
+ *
+ */
+
 /*******************************************************************************
  *
  * Copyright (c) 2013, 2014, 2015 Intel Corporation and others.
@@ -199,7 +205,7 @@ static uint8_t prv_security_read(lwm2m_context_t * contextP,
     return result;
 }
 
-lwm2m_object_t *get_security_object(void) {
+lwm2m_object_t *get_security_object(char * server_addr, int port_number) {
     lwm2m_object_t * securityObj;
 
     securityObj = (lwm2m_object_t *)lwm2m_malloc(sizeof(lwm2m_object_t));
@@ -222,9 +228,8 @@ lwm2m_object_t *get_security_object(void) {
 
         memset(targetP, 0, sizeof(security_instance_t));
         targetP->instanceId = 0;
-        //targetP->uri = strdup("coap://[2a01:111:f100:9001::1761:93fa]:5683");
-        targetP->uri = strdup("coap://[2a05:d018:1db1:3d01:a672:42eb:159a:86e]:5683");
-        //targetP->uri = strdup("coap://[2a0c:9a40:2505:de00:f265:3568:22a1:7c9f]:6683");
+        targetP->uri = (char *)lwm2m_malloc(strlen("coap://:xxxx") + strlen(server_addr));
+        sprintf(targetP->uri, "coap://%s:%d", server_addr, port_number);
         targetP->isBootstrap = false;
         targetP->shortID = 123;
         targetP->clientHoldOffTime = 10;

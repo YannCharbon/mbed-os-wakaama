@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023
+ * Yann Charbon <yann.charbon@heig-vd.h>
+ *
+ */
+
 /*******************************************************************************
  *
  * Copyright (c) 2013, 2014 Intel Corporation and others.
@@ -27,36 +33,12 @@
 #include "net_interface.h"
 
 static int cur_sock;
-static uint8_t buffer[2048];
 static uint8_t pending_rx_buffer[2048];
-static int pending_rx_pkt_len = 0;
 static ns_address_t pending_rx_addr;
 
 extern void lwm2m_handle_incoming_socket_data_c_wrap(ns_address_t *addr, uint8_t *buf, size_t len);
 
 void socket_recv_callback(void *socket_cb) {
-    //wait_us(200);
-    //printf("Socket receive callback (event_type %d, socket_id %d, d_len %d)\n", socket_cb->event_type, socket_cb->socket_id, socket_cb->d_len);
-    //ns_address_t addr;
-    //int numBytes = socket_recvfrom(cur_sock, buffer, 2048, 0, &addr);
-    //printf("Received %d byte from %s\n", trace_ipv6(addr.address));
-    //printf("Socket receive callback\n");
-    //socket_callback_t *socket_callback = (socket_callback_t *)socket_cb;
-    //int16_t length;
-//
-    //if (socket_callback->event_type == SOCKET_DATA) {
-    //    if (socket_callback->d_len > 0) {
-    //        memset(pending_rx_buffer, 0, 2048);
-//
-    //        length = socket_read(socket_callback->socket_id, &pending_rx_addr, pending_rx_buffer, socket_callback->d_len);
-    //        if (length > 0) {
-    //            printf("Received %d bytes\n", length);
-    //            pending_rx_pkt_len = length;
-    //        } else {
-    //            pending_rx_pkt_len = 0;
-    //        }
-    //    }
-    //}
     //printf("%s\n", __func__);
     socket_callback_t *socket_callback = (socket_callback_t *)socket_cb;
 
@@ -84,13 +66,6 @@ void socket_recv_callback(void *socket_cb) {
 	}
 }
 
-void test_socket_recv_callback(void *socket_cb) {
-    //printf("Socket receive callback\n");
-    //ns_address_t addr;
-    //int numBytes = socket_recvfrom(cur_sock, buffer, 2048, 0, &addr);
-    //printf("Received %d byte from %s\n", trace_ipv6(addr.address));
-}
-
 
 int create_socket(int port_number, int ai_family)
 {
@@ -102,7 +77,7 @@ int create_socket(int port_number, int ai_family)
     }
     cur_sock = sock;
     // Normally socket_open already binds
-    ns_address_t binding;
+    //ns_address_t binding;
     //memcpy(binding.address, ns_in6addr_any, 16);
     //binding.type = ADDRESS_IPV6;
     //binding.identifier = port_number;
@@ -159,7 +134,6 @@ connection_t * connection_create(connection_t * connList,
                                  char * port,
                                  int addressFamily)
 {
-    int ret = 0;
     connection_t * connP = NULL;
 
     (void)addressFamily;
@@ -176,20 +150,7 @@ connection_t * connection_create(connection_t * connList,
 
     host_addr.identifier = atoi(port);
 
-    //int test_sock = socket_open(SOCKET_UDP, host_addr.identifier, &test_socket_recv_callback);
-//
-    //if (test_sock < 0) {
-    //    printf("%s: Failed to open socket\n", __func__);
-    //    return NULL;
-    //}
-
-    //ret = socket_connect(sock, &host_addr, 0);
-
-    //if (ret >= 0) {
-        connP = connection_new_incoming(connList, sock, &host_addr, sizeof(host_addr));
-    //}
-
-    //socket_close(test_sock);
+    connP = connection_new_incoming(connList, sock, &host_addr, sizeof(host_addr));
 
     return connP;
 }
@@ -211,7 +172,7 @@ int connection_send(connection_t *connP,
                     uint8_t * buffer,
                     size_t length)
 {
-    int nbSent;
+    //int nbSent;
     size_t offset;
 
     offset = 0;

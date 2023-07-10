@@ -39,6 +39,8 @@
         "initializer_list": "cpp",
         "thread": "c",
         "nat66.h": "c",
-        "inet.h": "c"
+        "inet.h": "c",
+        "internet": "cpp",
+        "typeinfo": "cpp"
     }
 }
