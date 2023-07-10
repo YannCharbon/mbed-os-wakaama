@@ -1,0 +1,261 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "➡️ Deploy/Update environment and libraries (Windows)",
+            "command": "vscode_deploy_windows.bat",
+            "args": [
+                "EFR32_CUSTOM",
+                "${workspaceFolderBasename}"
+            ]
+        },
+        {
+            "label": "➡️🐧 Deploy/Update environment and libraries (Linux)",
+            "command": "./vscode_deploy_linux.sh",
+            "args": [
+                "EFR32_CUSTOM",
+                "${workspaceFolderBasename}"
+            ]
+        },
+        {
+            "label": "===== BUILD EFR32 =====",
+            "command": ""
+        },
+        {
+            "label": "🔨 Build program (GCC)",
+            "command": "mbed",
+            "args": [
+                "compile",
+                "-m",
+                "EFR32_CUSTOM",
+                "-t",
+                "GCC_ARM"
+            ]
+        },
+        {
+            "label": "🔨🐞 Build program (GCC debug)",
+            "command": "mbed",
+            "args": [
+                "compile",
+                "--profile=debug",
+                "-m",
+                "EFR32_CUSTOM",
+                "-t",
+                "GCC_ARM"
+            ]
+        },
+        {
+            "label": "===== BUILD NUCLEO L486 =====",
+            "command": ""
+        },
+        {
+            "label": "🔨🐞 Build program (GCC debug)",
+            "command": "mbed",
+            "args": [
+                "compile",
+                "--profile=debug",
+                "-m",
+                "NUCLEO_L486RG",
+                "-t",
+                "GCC_ARM"
+            ]
+        },
+        {
+            "label": "===== BUILD DISCO F769 =====",
+            "command": ""
+        },
+        {
+            "label": "🔨 Build program (GCC release)",
+            "command": "mbed",
+            "args": [
+                "compile",
+                "--profile=release",
+                "-m",
+                "DISCO_F769NI",
+                "-t",
+                "GCC_ARM"
+            ]
+        },
+        {
+            "label": "🔨🐞 Build program (GCC debug)",
+            "command": "mbed",
+            "args": [
+                "compile",
+                "--profile=debug",
+                "-m",
+                "DISCO_F769NI",
+                "-t",
+                "GCC_ARM"
+            ]
+        },
+        {
+            "label": "===== EFR32 Flash (Windows) =====",
+            "command": ""
+        },
+        {
+            "label": "🚀 JLINK Flash board (GCC)",
+            "command": "jlink",
+            "args": [
+                "-device",
+                "efr32mg12p433f1024gm68",
+                "-autoconnect",
+                "1",
+                "-NoGui",
+                "0",
+                "-if",
+                "SWD",
+                "-Speed",
+                "4000",
+                "-CommandFile",
+                "flashefr32custom.jlink"
+            ]
+        },
+        {
+            "label": "🚀🐞 JLINK Flash board (GCC debug)",
+            "command": "jlink",
+            "args": [
+                "-device",
+                "efr32mg12p433f1024gm68",
+                "-autoconnect",
+                "1",
+                "-NoGui",
+                "0",
+                "-if",
+                "SWD",
+                "-Speed",
+                "4000",
+                "-CommandFile",
+                "flashefr32custom_debug.jlink"
+            ]
+        },
+        {
+            "label": "===== EFR32 Flash (Linux) =====",
+            "command": ""
+        },
+        {
+            "label": "🐧🚀 JLINK Flash board (GCC)",
+            "command": "JLinkExe",
+            "args": [
+                "-device",
+                "efr32mg12p433f1024gm68",
+                "-autoconnect",
+                "1",
+                "-NoGui",
+                "0",
+                "-if",
+                "SWD",
+                "-Speed",
+                "4000",
+                "-CommandFile",
+                "flashefr32custom.jlink"
+            ]
+        },
+        {
+            "label": "🐧🚀🐞 JLINK Flash board (GCC debug)",
+            "command": "JLinkExe",
+            "args": [
+                "-device",
+                "efr32mg12p433f1024gm68",
+                "-autoconnect",
+                "1",
+                "-NoGui",
+                "0",
+                "-if",
+                "SWD",
+                "-Speed",
+                "4000",
+                "-CommandFile",
+                "flashefr32custom_debug.jlink"
+            ]
+        },
+        {
+            "label": "===== NUCLEO L486 Flash (Linux) =====",
+            "command": ""
+        },
+        {
+            "label": "🚀🐞 Openocd flash (GCC debug) L486",
+            "command": "./flash_stm32l486disco.sh",
+            "args": [
+                "${workspaceFolderBasename}"
+            ]
+        },
+        {
+            "label": "===== DISCO L769 Flash (Linux) =====",
+            "command": ""
+        },
+        {
+            "label": "🚀 Openocd flash (GCC release) F769",
+            "command": "./flash_stm32f769disco_release.sh",
+            "args": [
+                "${workspaceFolderBasename}"
+            ]
+        },
+        {
+            "label": "🚀🐞 Openocd flash (GCC debug) F769",
+            "command": "./flash_stm32f769disco.sh",
+            "args": [
+                "${workspaceFolderBasename}"
+            ]
+        },
+        {
+            "label": "===== Configs =====",
+            "command": ""
+        },
+        {
+            "label": "⚙️ Show config EFR32",
+            "command": "mbed",
+            "args": [
+                "compile",
+                "-m",
+                "EFR32_CUSTOM",
+                "-t",
+                "GCC_ARM",
+                "--config"
+            ]
+        },
+        {
+            "label": "⚙️ Show config L486",
+            "command": "mbed",
+            "args": [
+                "compile",
+                "-m",
+                "NUCLEO_L486RG",
+                "-t",
+                "GCC_ARM",
+                "--config"
+            ]
+        },
+        {
+            "label": "⚙️ Show config l769",
+            "command": "mbed",
+            "args": [
+                "compile",
+                "-m",
+                "DISCO_F769NI",
+                "-t",
+                "GCC_ARM",
+                "--config"
+            ]
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: arm-none-eabi-g++ build active file",
+            "command": "/gcc-arm-none-eabi-9-2020-q2-update/bin/arm-none-eabi-g++",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "${file}",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+            "detail": "Task generated by Debugger."
+        }
+    ]
+}

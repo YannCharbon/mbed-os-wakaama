@@ -1,0 +1,42 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+# *.lib since mbed cli need .lib to store information about libraries and dependencies.
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Exclude for mbed relevant items
+*.hg
+
+# Mbed
+.github
+BUILD
+mbed-os
+__pycache__
+_config.yml
