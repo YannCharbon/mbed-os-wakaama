@@ -1,5 +1,6 @@
 {
-    "macros": ["LWM2M_LITTLE_ENDIAN", "LWM2M_CLIENT_MODE", "LWM2M_SUPPORT_TLV", "LWM2M_SUPPORT_JSON", "LWM2M_COAP_DEFAULT_BLOCK_SIZE=1024", "LWM2M_VERSION_1_0"],
+    "macros": [ "LWM2M_LITTLE_ENDIAN", "LWM2M_CLIENT_MODE", "LWM2M_SUPPORT_TLV", "LWM2M_SUPPORT_JSON",
+                "LWM2M_COAP_DEFAULT_BLOCK_SIZE=1024", "LWM2M_VERSION_1_0"],
     "target_overrides": {
         "*": {
             "nsapi.default-stack": "NANOSTACK",
@@ -8,6 +9,9 @@
             "platform.stdio-convert-newlines": false,
             "platform.stdio-baud-rate": 115200,
             "platform.stdio-buffered-serial": true
+        },
+        "ADDITIONAL_MACROS_FOR_DTLS": {
+            "macros": ["MBEDTLS_USER_CONFIG_FILE=\"config-ccm-psk-tls1_2.h\"", "USE_DTLS"]
         }
     }
 }
