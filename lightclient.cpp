@@ -95,10 +95,15 @@ extern "C" {
 
 #define STR(x)  #x
 
-#define CLIENT_ENDPOINT_NAME "m2mMbed"
+#define CLIENT_ENDPOINT_NAME    "mbedM2M"
+#define CLIENT_IDENTITY         "mbedM2M"
+#define CLIENT_KEYSTR           "65875A0C3D4646A99BFC4D5967EE7DB3"
+#define SERVER_DTLS_PORT        "5684"
+#define SERVER_PORT             "5683"
+#define CLIENT_LOCAL_PORT       0       // Let OS decide
+
 //Connect to the Leshan test server as default: http://leshan.eclipse.org
 #define M2M_SERVER_URL "2a01:111:f100:9001::1761:93fa" // LESHAN
-#define M2M_SERVER_PORT 5683
 
 extern lwm2m_object_t * get_object_device(void);
 extern void free_object_device(lwm2m_object_t * objectP);
@@ -397,19 +402,10 @@ int main(int argc, char *argv[])
     data.addressFamily = ADDRESS_IPV6;
 
     int result;
-    const char * server = "2a01:111:f100:9001::1761:93fa";
-#if defined USE_DTLS
-    const char * serverPort = LWM2M_DTLS_PORT_STR;
-    const char * localPort = LWM2M_DTLS_PORT_STR;
-#else
-    const char * serverPort = (char *)LWM2M_STANDARD_PORT_STR;
-    const char * localPort = (char *)LWM2M_STANDARD_PORT_STR;
-#endif
-    char * name = "mbedM2M";
 
-    #ifdef USE_DTLS
-    char * pskId = "mbedM2M";
-    char *psk = "65875a0c3d4646a99bfc4d5967ee7db3";
+#ifdef USE_DTLS
+    char * pskId = CLIENT_IDENTITY;
+    char *psk = CLIENT_KEYSTR;
 
     uint16_t pskLen = 0;
     char * pskBuffer = NULL;
@@ -423,8 +419,8 @@ int main(int argc, char *argv[])
     /*
      *This call an internal function that create an IPV6 socket on the port.
      */
-    fprintf(stderr, "Trying to bind LWM2M Client to port %d\r\n", M2M_SERVER_PORT);
-    data.sock = create_socket(M2M_SERVER_PORT, data.addressFamily);
+    fprintf(stderr, "Trying to bind LWM2M Client to port %d\r\n", CLIENT_LOCAL_PORT);
+    data.sock = create_socket(CLIENT_LOCAL_PORT, data.addressFamily);
     if (data.sock < 0)
     {
         fprintf(stderr, "Failed to open socket: %d %s\r\n", errno, strerror(errno));
@@ -469,10 +465,10 @@ int main(int argc, char *argv[])
 
     char serverUri[50];
     int serverId = 123;
-#if defined USE_DTLS
-    sprintf (serverUri, "coaps://[%s]:%s", M2M_SERVER_URL, "5684");
+#ifdef USE_DTLS
+    sprintf (serverUri, "coaps://[%s]:%s", M2M_SERVER_URL, SERVER_DTLS_PORT);
 #else
-    sprintf (serverUri, "coap://[%s]:%s", M2M_SERVER_URL, "5683");
+    sprintf (serverUri, "coap://[%s]:%s", M2M_SERVER_URL, SERVER_PORT);
 #endif
     /*
      * Now the main function fill an array with each object, this list will be later passed to liblwm2m.
@@ -533,7 +529,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "lwm2m_configure() failed: 0x%X\r\n", result);
         return -1;
     }
-    fprintf(stdout, "LWM2M Client \"%s\" started on port %d.\r\nUse Ctrl-C to exit.\r\n\n", CLIENT_ENDPOINT_NAME, M2M_SERVER_PORT);
+    fprintf(stdout, "LWM2M Client \"%s\" started on port %d.\r\nUse Ctrl-C to exit.\r\n\n", CLIENT_ENDPOINT_NAME, CLIENT_LOCAL_PORT);
 
     /*
      * We now enter in a while loop that will handle the communications from the server
