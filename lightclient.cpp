@@ -88,19 +88,28 @@ void lwm2m_main_thread_timeout_timer_cb() {
 extern "C" {
 #include "liblwm2m.h"
 #include "connection.h"
+#if defined(USE_DTLS)
+#include "dtlsconnection.h"
+#endif
+#include "object_utils.h"
 
 #define STR(x)  #x
 
-#define CLIENT_ENDPOINT_NAME "m2mMbed"
+#define CLIENT_ENDPOINT_NAME    "mbedM2M"
+#define CLIENT_IDENTITY         "mbedM2M"
+#define CLIENT_KEYSTR           "65875A0C3D4646A99BFC4D5967EE7DB3"
+#define SERVER_DTLS_PORT        "5684"
+#define SERVER_PORT             "5683"
+#define CLIENT_LOCAL_PORT       0       // Let OS decide
+
 //Connect to the Leshan test server as default: http://leshan.eclipse.org
 #define M2M_SERVER_URL "2a01:111:f100:9001::1761:93fa" // LESHAN
-#define M2M_SERVER_PORT 5683
 
 extern lwm2m_object_t * get_object_device(void);
 extern void free_object_device(lwm2m_object_t * objectP);
 extern lwm2m_object_t * get_server_object(void);
 extern void free_server_object(lwm2m_object_t * object);
-extern lwm2m_object_t * get_security_object(char * server_addr, int port_number);
+lwm2m_object_t * get_security_object(int serverId, const char* serverUri, char * bsPskId, char * psk, uint16_t pskLen, bool isBootstrap);
 extern void free_security_object(lwm2m_object_t * objectP);
 extern char * get_server_uri(lwm2m_object_t * objectP, uint16_t secObjInstID);
 extern lwm2m_object_t * get_test_object(void);
@@ -117,6 +126,8 @@ typedef struct
     int sock;
     connection_t * connList;
     int addressFamily;
+    lwm2m_context_t *ctx;
+    lwm2m_connection_layer_t *connLayer;
 } client_data_t;
 
 client_data_t data;
@@ -215,7 +226,13 @@ void * lwm2m_connect_server(uint16_t secObjInstID,
     *port = 0;
     port++;
 
-    newConnP = connection_create(dataP->connList, dataP->sock, host, port, 0);
+#if defined(USE_DTLS)
+    newConnP = (connection_t *)dtlsconnection_create(dataP->connLayer, secObjInstID, dataP->sock, host, port,
+                                                         dataP->addressFamily);
+#else
+    newConnP = connection_create(dataP->connLayer, dataP->sock, host, port, dataP->addressFamily);
+#endif
+
     if (newConnP == NULL) {
         printf("Connection creation failed.\r\n");
     }
@@ -381,17 +398,29 @@ int main(int argc, char *argv[])
 
     lwm2m_object_t * objArray[OBJ_COUNT];
 
-    int result;
-
     memset(&data, 0, sizeof(client_data_t));
-
     data.addressFamily = ADDRESS_IPV6;
 
+    int result;
+
+#ifdef USE_DTLS
+    char * pskId = CLIENT_IDENTITY;
+    char *psk = CLIENT_KEYSTR;
+
+    uint16_t pskLen = 0;
+    char * pskBuffer = NULL;
+#else
+    char * pskId = NULL;
+    char *psk = NULL;
+    uint16_t pskLen = -1;
+    char * pskBuffer = NULL;
+#endif
+
     /*
-     *This call an internal function that create an IPv6 socket on the port 5683.
+     *This call an internal function that create an IPV6 socket on the port.
      */
-    fprintf(stderr, "Trying to bind LWM2M Client to port %d\r\n", M2M_SERVER_PORT);
-    data.sock = create_socket(M2M_SERVER_PORT, data.addressFamily);
+    fprintf(stderr, "Trying to bind LWM2M Client to port %d\r\n", CLIENT_LOCAL_PORT);
+    data.sock = create_socket(CLIENT_LOCAL_PORT, data.addressFamily);
     if (data.sock < 0)
     {
         fprintf(stderr, "Failed to open socket: %d %s\r\n", errno, strerror(errno));
@@ -402,7 +431,50 @@ int main(int argc, char *argv[])
      * Now the main function fill an array with each object, this list will be later passed to liblwm2m.
      * Those functions are located in their respective object file.
      */
-    objArray[0] = get_security_object(M2M_SERVER_URL, M2M_SERVER_PORT);
+#ifdef USE_DTLS
+    if (psk != NULL)
+    {
+        pskLen = strlen(psk) / 2;
+        pskBuffer = (char *)malloc(pskLen);
+
+        if (NULL == pskBuffer)
+        {
+            fprintf(stderr, "Failed to create PSK binary buffer\r\n");
+            return -1;
+        }
+        // Hex string to binary
+        char *h = psk;
+        char *b = pskBuffer;
+        char xlate[] = "0123456789ABCDEF";
+
+        for ( ; *h; h += 2, ++b)
+        {
+            char *l = strchr(xlate, toupper(*h));
+            char *r = strchr(xlate, toupper(*(h+1)));
+
+            if (!r || !l)
+            {
+                fprintf(stderr, "Failed to parse Pre-Shared-Key HEXSTRING\r\n");
+                return -1;
+            }
+
+            *b = ((l - xlate) << 4) + (r - xlate);
+        }
+    }
+#endif
+
+    char serverUri[50];
+    int serverId = 123;
+#ifdef USE_DTLS
+    sprintf (serverUri, "coaps://[%s]:%s", M2M_SERVER_URL, SERVER_DTLS_PORT);
+#else
+    sprintf (serverUri, "coap://[%s]:%s", M2M_SERVER_URL, SERVER_PORT);
+#endif
+    /*
+     * Now the main function fill an array with each object, this list will be later passed to liblwm2m.
+     * Those functions are located in their respective object file.
+     */
+    objArray[0] = get_security_object(serverId, serverUri, pskId, pskBuffer, pskLen, false);
     if (NULL == objArray[0])
     {
         fprintf(stderr, "Failed to create security object\r\n");
@@ -443,6 +515,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    data.ctx = lwm2mH;
+    data.connLayer = connectionlayer_create(lwm2mH);
+
     /*
      * We configure the liblwm2m library with the name of the client - which shall be unique for each client -
      * the number of objects we will be passing through and the objects array
@@ -454,7 +529,7 @@ int main(int argc, char *argv[])
         fprintf(stderr, "lwm2m_configure() failed: 0x%X\r\n", result);
         return -1;
     }
-    fprintf(stdout, "LWM2M Client \"%s\" started on port %d.\r\nUse Ctrl-C to exit.\r\n\n", CLIENT_ENDPOINT_NAME, M2M_SERVER_PORT);
+    fprintf(stdout, "LWM2M Client \"%s\" started on port %d.\r\nUse Ctrl-C to exit.\r\n\n", CLIENT_ENDPOINT_NAME, CLIENT_LOCAL_PORT);
 
     /*
      * We now enter in a while loop that will handle the communications from the server
@@ -491,17 +566,9 @@ void lwm2m_main_thread_task() {
     }
 }
 
-void lwm2m_handle_incoming_socket_data(ns_address_t *addr, uint8_t *buf, size_t len) {
-    //printf("New packet arrived !\n");
-    connection_t * connP;
-
-    connP = connection_find(data.connList, addr, sizeof(ns_address_t));
-    if (connP != NULL){
-        /*
-        * Let liblwm2m respond to the query depending on the context
-        */
-        lwm2m_handle_packet(lwm2mH, buf, len, connP);
-    } else {
+void lwm2m_handle_incoming_socket_data_cpp_wrap(ns_address_t *addr, uint8_t *buf, size_t len) {
+    printf("New packet arrived !\n");
+    if (connectionlayer_handle_packet(data.connLayer, addr, buf, len) == -1) {
         /*
         * This packet comes from an unknown peer
         */
@@ -512,6 +579,6 @@ void lwm2m_handle_incoming_socket_data(ns_address_t *addr, uint8_t *buf, size_t 
     lwm2m_main_thread.flags_set(0x1);
 }
 
-extern "C" void lwm2m_handle_incoming_socket_data_c_wrap(ns_address_t *addr, uint8_t *buf, size_t len) {
-    lwm2m_handle_incoming_socket_data(addr, buf, len);
+extern "C" void lwm2m_handle_incoming_socket_data(ns_address_t *addr, uint8_t *buf, size_t len) {
+    lwm2m_handle_incoming_socket_data_cpp_wrap(addr, buf, len);
 }
