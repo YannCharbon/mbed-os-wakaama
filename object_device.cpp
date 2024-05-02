@@ -102,7 +102,7 @@ static int prv_check_time_offset(char * buffer,
     return 1;
 }
 
-uint8_t Object_Device::prv_set_value(lwm2m_data_t * dataP,
+uint8_t ObjectDevice::_prvSetValue(lwm2m_data_t * dataP,
                              device_data_t * devDataP)
 {
     lwm2m_data_t * subTlvP;
@@ -303,7 +303,7 @@ uint8_t Object_Device::prv_set_value(lwm2m_data_t * dataP,
     }
 }
 
-uint8_t Object_Device::prv_device_read(lwm2m_context_t *contextP,
+uint8_t ObjectDevice::_prvDeviceRead(lwm2m_context_t *contextP,
                                uint16_t instanceId,
                                int * numDataP,
                                lwm2m_data_t ** dataArrayP,
@@ -357,14 +357,14 @@ uint8_t Object_Device::prv_device_read(lwm2m_context_t *contextP,
     i = 0;
     do
     {
-        result = prv_set_value((*dataArrayP) + i, (device_data_t*)(objectP->userData));
+        result = _prvSetValue((*dataArrayP) + i, (device_data_t*)(objectP->userData));
         i++;
     } while (i < *numDataP && result == COAP_205_CONTENT);
 
     return result;
 }
 
-uint8_t Object_Device::prv_device_write(lwm2m_context_t *contextP,
+uint8_t ObjectDevice::_prvDeviceWrite(lwm2m_context_t *contextP,
                                 uint16_t instanceId,
                                 int numData,
                                 lwm2m_data_t * dataArray,
@@ -439,7 +439,7 @@ uint8_t Object_Device::prv_device_write(lwm2m_context_t *contextP,
     return result;
 }
 
-uint8_t Object_Device::prv_device_discover(lwm2m_context_t *contextP,
+uint8_t ObjectDevice::_prvDeviceDiscover(lwm2m_context_t *contextP,
                                    uint16_t instanceId,
                                    int * numDataP,
                                    lwm2m_data_t ** dataArrayP,
@@ -524,7 +524,7 @@ uint8_t Object_Device::prv_device_discover(lwm2m_context_t *contextP,
     return result;
 }
 
-uint8_t Object_Device::prv_device_execute(lwm2m_context_t *contextP,
+uint8_t ObjectDevice::_prvDeviceExecute(lwm2m_context_t *contextP,
                                   uint16_t instanceId,
                                   uint16_t resourceId,
                                   uint8_t * buffer,
@@ -561,7 +561,7 @@ uint8_t Object_Device::prv_device_execute(lwm2m_context_t *contextP,
     }
 }
 
-void Object_Device::display_device_object(lwm2m_object_t * object)
+void ObjectDevice::DisplayDeviceObject(lwm2m_object_t * object)
 {
     device_data_t * data = (device_data_t *)object->userData;
     fprintf(stdout, "  /%u: Device object:\r\n", object->objID);
@@ -572,7 +572,7 @@ void Object_Device::display_device_object(lwm2m_object_t * object)
     }
 }
 
-lwm2m_object_t *Object_Device::get_object_device(void) {
+lwm2m_object_t *ObjectDevice::GetObjectDevice(void) {
     /*
      * The get_object_device function create the object itself and return a pointer to the structure that represent it.
      */
@@ -608,7 +608,7 @@ lwm2m_object_t *Object_Device::get_object_device(void) {
         /*
          * Call the friend class allowing to set private callback function to the corresponding struct field 
          */
-        CallbackSetter::setCallBack(*deviceObj);
+        CallbackSetter::SetCallBack(*deviceObj);
 
         /*
          * Also some user data can be stored in the object with a private structure containing the needed variables 
@@ -632,7 +632,7 @@ lwm2m_object_t *Object_Device::get_object_device(void) {
     return deviceObj;
 }
 
-void Object_Device::free_object_device(lwm2m_object_t * objectP)
+void ObjectDevice::FreeObjectDevice(lwm2m_object_t * objectP)
 {
     if (NULL != objectP->userData)
     {
@@ -648,7 +648,7 @@ void Object_Device::free_object_device(lwm2m_object_t * objectP)
     lwm2m_free(objectP);
 }
 
-uint8_t Object_Device::device_change(lwm2m_data_t * dataArray,
+uint8_t ObjectDevice::DeviceChange(lwm2m_data_t * dataArray,
                       lwm2m_object_t * objectP)
 {
     uint8_t result;

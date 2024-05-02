@@ -59,38 +59,37 @@ typedef struct
     char time_offset[PRV_OFFSET_MAXLEN];
 } device_data_t;
 
-class Object_Device
+class ObjectDevice
 {
 public:
-    lwm2m_object_t *get_object_device(void);
-    void free_object_device(lwm2m_object_t *objectP);
-    void display_device_object(lwm2m_object_t * object);
-    uint8_t device_change(lwm2m_data_t * dataArray,
+    lwm2m_object_t *GetObjectDevice(void);
+    void FreeObjectDevice(lwm2m_object_t *objectP);
+    void DisplayDeviceObject(lwm2m_object_t * object);
+    uint8_t DeviceChange(lwm2m_data_t * dataArray,
                       lwm2m_object_t * objectP);
 
     friend class CallbackSetter;
 
 private:
-    static uint8_t prv_set_value(lwm2m_data_t *dataP);
-    static uint8_t prv_set_value(lwm2m_data_t * dataP,
+    static uint8_t _prvSetValue(lwm2m_data_t * dataP,
                              device_data_t * devDataP);
-    static uint8_t prv_device_read(lwm2m_context_t *contextP,
+    static uint8_t _prvDeviceRead(lwm2m_context_t *contextP,
                                    uint16_t instanceId,
                                    int *numDataP,
                                    lwm2m_data_t **dataArrayP,
                                    lwm2m_object_t *objectP);
-    static uint8_t prv_device_write(lwm2m_context_t *contextP,
+    static uint8_t _prvDeviceWrite(lwm2m_context_t *contextP,
                                 uint16_t instanceId,
                                 int numData,
                                 lwm2m_data_t * dataArray,
                                 lwm2m_object_t * objectP,
                                 lwm2m_write_type_t writeType);
-    static uint8_t prv_device_discover(lwm2m_context_t *contextP,
+    static uint8_t _prvDeviceDiscover(lwm2m_context_t *contextP,
                                        uint16_t instanceId,
                                        int *numDataP,
                                        lwm2m_data_t **dataArrayP,
                                        lwm2m_object_t *objectP);
-    static uint8_t prv_device_execute(lwm2m_context_t *contextP,
+    static uint8_t _prvDeviceExecute(lwm2m_context_t *contextP,
                                       uint16_t instanceId,
                                       uint16_t resourceId,
                                       uint8_t *buffer,
@@ -101,11 +100,11 @@ private:
 class CallbackSetter
 {
 public:
-    static void setCallBack(lwm2m_object_t& object){
-        object.readFunc = &Object_Device::prv_device_read;
-        object.executeFunc = &Object_Device::prv_device_execute;
-        object.discoverFunc = &Object_Device::prv_device_discover;
-        object.writeFunc = &Object_Device::prv_device_write;
+    static void SetCallBack(lwm2m_object_t& object){
+        object.readFunc = &ObjectDevice::_prvDeviceRead;
+        object.executeFunc = &ObjectDevice::_prvDeviceExecute;
+        object.discoverFunc = &ObjectDevice::_prvDeviceDiscover;
+        object.writeFunc = &ObjectDevice::_prvDeviceWrite;
         object.userData = lwm2m_malloc(sizeof(device_data_t));
     }
 };

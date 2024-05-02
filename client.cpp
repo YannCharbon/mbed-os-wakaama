@@ -394,6 +394,9 @@ void print_state(lwm2m_context_t * lwm2mH)
 
 #define OBJ_COUNT 4
 
+
+#if !MBED_TEST_MODE
+#ifdef NO_DEBUG
 int main(int argc, char *argv[])
 {
     init_network();
@@ -492,8 +495,8 @@ int main(int argc, char *argv[])
     }
 
     //objArray[2] = get_object_device();
-    Object_Device* object_device = new Object_Device();
-    objArray[2] = object_device->get_object_device();
+    ObjectDevice* objectDevice = new ObjectDevice();
+    objArray[2] = objectDevice->GetObjectDevice();
     if (NULL == objArray[2])
     {
         fprintf(stderr, "Failed to create Device object\r\n");
@@ -546,6 +549,8 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+#endif
+#endif
 
 void lwm2m_main_thread_task() {
     while(1) {

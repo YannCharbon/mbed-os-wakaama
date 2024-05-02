@@ -3,10 +3,9 @@
 
 #include "ressource.h"
 
-class Node_Object
+class NodeObject
 {
 public:
-    int add_ressource(Ressource<T> ressource);
 private:
 
 };
