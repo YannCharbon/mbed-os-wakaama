@@ -1,9 +1,12 @@
-/*#include "resource.h"
+
+/*#if !MBED_TEST_MODE
+#ifdef NO_DEBUG
+#include "resource.h"
+#include "node_object.h"
 #include <vector>
 #include <string>
 #include <iostream>
 
-#if !MBED_TEST_MODE
 int main(int argc, char *argv[])
 {
     std::vector<Resource> list;
@@ -14,7 +17,7 @@ int main(int argc, char *argv[])
     list.push_back(Resource());
 
 
-    std::cout << "objet 0 rights is " << int(list[0].GetRights()) << std::endl;
+    std::cout << "objet 0 rights is " << int(list[0].GetOp()) << std::endl;
 
     if(!list[0].BindOnWrite<int>([](int a){
         std::cout << "Listener 1 value write is : " << a << std::endl;
@@ -61,5 +64,5 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
-
+#endif
 #endif*/

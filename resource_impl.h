@@ -8,6 +8,8 @@ Resource::~Resource()
     if (!_value)
         return;
     delete _actionsOnWrite;
+    delete _actionsOnRead;
+    delete _actionsOnExec;
     Head *head = this->_head();
     head->~Head();
     free(head);
@@ -27,9 +29,9 @@ const std::type_info &Resource::Type()
     return ((Head *)_value - 1)->type;
 }
 
-const ResourceOp &Resource::GetRights() const
+const ResourceOp &Resource::GetOp() const
 {
-    return _rights;
+    return _resourceOp;
 }
 
 const std::string &Resource::GetName() const{

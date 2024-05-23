@@ -275,19 +275,24 @@ int lwm2m_configure(lwm2m_context_t * contextP,
             STR_NULL2EMPTY(altPath),
             numObject);
     // This API can be called only once for now
+    fprintf(stderr, "crash1\r\n");
     if (contextP->endpointName != NULL || contextP->objectList != NULL) return COAP_400_BAD_REQUEST;
-
+fprintf(stderr, "crash2\r\n");
     if (endpointName == NULL) return COAP_400_BAD_REQUEST;
+    fprintf(stderr, "crash3\r\n");
     if (numObject < 3) return COAP_400_BAD_REQUEST;
+    fprintf(stderr, "crash4\r\n");
     // Check that mandatory objects are present
     found = 0;
     for (i = 0 ; i < numObject ; i++)
     {
+        printf("ObjID = %u\r\n", objectList[i]->objID);
         if (objectList[i]->objID == LWM2M_SECURITY_OBJECT_ID) found |= 0x01;
         if (objectList[i]->objID == LWM2M_SERVER_OBJECT_ID) found |= 0x02;
         if (objectList[i]->objID == LWM2M_DEVICE_OBJECT_ID) found |= 0x04;
     }
     if (found != 0x07) return COAP_400_BAD_REQUEST;
+    fprintf(stderr, "crash5\r\n");
     if (altPath != NULL)
     {
         if (0 == utils_isAltPathValid(altPath))

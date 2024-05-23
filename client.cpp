@@ -60,6 +60,7 @@
  Bosch Software Innovations GmbH - Please refer to git log
 
 */
+#if !MBED_TEST_MODE
 
 #include "mbed.h"
 #include "NetworkInterface.h"
@@ -70,6 +71,11 @@
 #include "ip6string.h"
 
 #include "object_device.h"
+
+#include "node_object.h"
+
+#include <string>
+#include <vector>
 
 using namespace std::chrono;
 
@@ -394,9 +400,6 @@ void print_state(lwm2m_context_t * lwm2mH)
 
 #define OBJ_COUNT 4
 
-
-#if !MBED_TEST_MODE
-#ifdef NO_DEBUG
 int main(int argc, char *argv[])
 {
     init_network();
@@ -495,15 +498,33 @@ int main(int argc, char *argv[])
     }
 
     //objArray[2] = get_object_device();
-    ObjectDevice* objectDevice = new ObjectDevice();
-    objArray[2] = objectDevice->GetObjectDevice();
+    //ObjectDevice* objectDevice = new ObjectDevice();
+    //objArray[2] = objectDevice->GetObjectDevice();
+
+    typedef struct customObjectValues{
+        struct customObjectValues *next;
+        uint16_t instanceId;
+        int valI;
+        float valF;
+    }customObject_t;
+
+    customObject_t myCustomObject = {nullptr, 0, 1, 1.3};
+    std::vector<std::type_info const *> types = {&typeid(int), &typeid(float)};
+    std::vector<ResourceOp> resOp = {ResourceOp::RES_RD, ResourceOp::RES_RDWR};
+    std::vector<std::string> names = {"valI", "valF"};
+    std::vector<Units> units = {Units::AMPER, Units::HERTZ};
+
+    NodeObject<customObject_t> customObject(3, myCustomObject, types, resOp, names, units);
+    objArray[2] = customObject.Get();
     if (NULL == objArray[2])
     {
         fprintf(stderr, "Failed to create Device object\r\n");
         return -1;
     }
 
-    objArray[3] = get_test_object();
+    NodeObject<customObject_t> testObject(3313, myCustomObject, types, resOp, names, units);
+    objArray[3] = testObject.Get();
+    //objArray[3] = get_test_object();
     if (NULL == objArray[3])
     {
         fprintf(stderr, "Failed to create Test object\r\n");
@@ -549,8 +570,6 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-#endif
-#endif
 
 void lwm2m_main_thread_task() {
     while(1) {
@@ -591,3 +610,5 @@ void lwm2m_handle_incoming_socket_data_cpp_wrap(ns_address_t *addr, uint8_t *buf
 extern "C" void lwm2m_handle_incoming_socket_data(ns_address_t *addr, uint8_t *buf, size_t len) {
     lwm2m_handle_incoming_socket_data_cpp_wrap(addr, buf, len);
 }
+
+#endif

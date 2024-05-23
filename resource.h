@@ -89,7 +89,7 @@ private:
     void *_copy() const { return _value ? _head()->Copy() : nullptr; }
 
     void *_value;
-    const ResourceOp _rights;
+    const ResourceOp _resourceOp;
     const std::string _name;
     const Units _unit;
     int _errorCode;
@@ -99,17 +99,17 @@ private:
     ResCallbackBase *_actionsOnExec = nullptr;
 
 public:
-    Resource() : _value(nullptr), _rights(ResourceOp::RES_RD), _name(std::string("")), _unit(Units::NA), _errorCode(RES_SUCCESS) {}
-    Resource(const Resource &src) : _value(src._copy()), _rights(src._rights), _name(src._name), _unit(src._unit), _errorCode(RES_SUCCESS) {}
-    Resource(Resource &&src) : _value(src._value), _rights(src._rights), _name(src._name), _unit(src._unit), _errorCode(RES_SUCCESS) { src._value = nullptr; }
+    Resource() : _value(nullptr), _resourceOp(ResourceOp::RES_RD), _name(std::string("")), _unit(Units::NA), _errorCode(RES_SUCCESS) {}
+    Resource(const Resource &src) : _value(src._copy()), _resourceOp(src._resourceOp), _name(src._name), _unit(src._unit), _errorCode(RES_SUCCESS) {}
+    Resource(Resource &&src) : _value(src._value), _resourceOp(src._resourceOp), _name(src._name), _unit(src._unit), _errorCode(RES_SUCCESS) { src._value = nullptr; }
 
     template <class T>
-    Resource(const T &src, ResourceOp rights = ResourceOp::RES_RD, const std::string &name = std::string("name"), Units unit = Units::NA) : _value(new(new(malloc(sizeof(Head) + sizeof(T))) THead<T>() + 1) T(src)), _rights(rights), _name(name), _unit(unit), _errorCode(RES_SUCCESS) {}
+    Resource(const T &src, ResourceOp rights = ResourceOp::RES_RD, const std::string &name = std::string("name"), Units unit = Units::NA) : _value(new(new(malloc(sizeof(Head) + sizeof(T))) THead<T>() + 1) T(src)), _resourceOp(rights), _name(name), _unit(unit), _errorCode(RES_SUCCESS) {}
     ~Resource();
 
     bool Empty() const;
     const std::type_info &Type();
-    const ResourceOp &GetRights() const;
+    const ResourceOp &GetOp() const;
     const std::string &GetName() const;
     const Units &GetUnit() const;
     int GetErrorCode();
@@ -131,7 +131,7 @@ public:
         }
 
         // Check access rights
-        if (_rights != ResourceOp::RES_RD && _rights != ResourceOp::RES_RDWR)
+        if (_resourceOp != ResourceOp::RES_RD && _resourceOp != ResourceOp::RES_RDWR)
         {
             _errorCode = BAD_EXPECTED_ACCESS;
             return nullptr;
@@ -147,7 +147,7 @@ public:
     int Write(const T &writeValue)
     {
         // Check access rights
-        if (_rights != ResourceOp::RES_WR && _rights != ResourceOp::RES_RDWR)
+        if (_resourceOp != ResourceOp::RES_WR && _resourceOp != ResourceOp::RES_RDWR)
         {
             _errorCode = BAD_EXPECTED_ACCESS;
             return BAD_EXPECTED_ACCESS;
@@ -190,7 +190,7 @@ public:
         }
 
         // Check access rights
-        if (_rights != ResourceOp::RES_E)
+        if (_resourceOp != ResourceOp::RES_E)
         {
             _errorCode = BAD_EXPECTED_ACCESS;
             return BAD_EXPECTED_ACCESS;
@@ -206,7 +206,7 @@ public:
     std::shared_ptr<std::function<void(T)>> BindOnWrite(std::function<void(T)> f)
     {
         // Check access rights
-        if (this->_rights != ResourceOp::RES_WR && this->_rights != ResourceOp::RES_RDWR)
+        if (this->_resourceOp != ResourceOp::RES_WR && this->_resourceOp != ResourceOp::RES_RDWR)
         {
             _errorCode = BAD_EXPECTED_ACCESS;
             return nullptr;
@@ -232,7 +232,7 @@ public:
     int UnbindOnWrite(std::shared_ptr<std::function<void(T)>> fp)
     {
         // Check access rights
-        if (this->_rights != ResourceOp::RES_WR && this->_rights != ResourceOp::RES_RDWR)
+        if (this->_resourceOp != ResourceOp::RES_WR && this->_resourceOp != ResourceOp::RES_RDWR)
         {
             _errorCode = BAD_EXPECTED_ACCESS;
             return BAD_EXPECTED_ACCESS;
@@ -261,7 +261,7 @@ public:
     std::shared_ptr<std::function<void(T)>> BindOnRead(std::function<void(T)> f)
     {
         // Check access rights
-        if (this->_rights != ResourceOp::RES_RD && this->_rights != ResourceOp::RES_RDWR)
+        if (this->_resourceOp != ResourceOp::RES_RD && this->_resourceOp != ResourceOp::RES_RDWR)
         {
             _errorCode = BAD_EXPECTED_ACCESS;
             return nullptr;
@@ -287,7 +287,7 @@ public:
     int UnbindOnRead(std::shared_ptr<std::function<void(T)>> fp)
     {
         // Check access rights
-        if (this->_rights != ResourceOp::RES_RD && this->_rights != ResourceOp::RES_RDWR)
+        if (this->_resourceOp != ResourceOp::RES_RD && this->_resourceOp != ResourceOp::RES_RDWR)
         {
             _errorCode = BAD_EXPECTED_ACCESS;
             return BAD_EXPECTED_ACCESS;
@@ -316,7 +316,7 @@ public:
     std::shared_ptr<std::function<void(T)>> BindOnExec(std::function<void(T)> f)
     {
         // Check access rights
-        if (this->_rights != ResourceOp::RES_E)
+        if (this->_resourceOp != ResourceOp::RES_E)
         {
             _errorCode = BAD_EXPECTED_ACCESS;
             return nullptr;
@@ -342,7 +342,7 @@ public:
     int UnbindOnExec(std::shared_ptr<std::function<void(T)>> fp)
     {
         // Check access rights
-        if (this->_rights != ResourceOp::RES_E)
+        if (this->_resourceOp != ResourceOp::RES_E)
         {
             _errorCode = BAD_EXPECTED_ACCESS;
             return BAD_EXPECTED_ACCESS;
