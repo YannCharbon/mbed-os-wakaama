@@ -92,6 +92,7 @@ private:
     const ResourceOp _resourceOp;
     const std::string _name;
     const Units _unit;
+    const size_t _id;
     int _errorCode;
 
     ResCallbackBase *_actionsOnWrite = nullptr;
@@ -99,12 +100,18 @@ private:
     ResCallbackBase *_actionsOnExec = nullptr;
 
 public:
-    Resource() : _value(nullptr), _resourceOp(ResourceOp::RES_RD), _name(std::string("")), _unit(Units::NA), _errorCode(RES_SUCCESS) {}
-    Resource(const Resource &src) : _value(src._copy()), _resourceOp(src._resourceOp), _name(src._name), _unit(src._unit), _errorCode(RES_SUCCESS) {}
-    Resource(Resource &&src) : _value(src._value), _resourceOp(src._resourceOp), _name(src._name), _unit(src._unit), _errorCode(RES_SUCCESS) { src._value = nullptr; }
+    Resource() : _value(nullptr), _resourceOp(ResourceOp::RES_RD), _name(std::string("")), _unit(Units::NA), _errorCode(RES_SUCCESS), _id(0) {}
+    Resource(const Resource &src) : _value(src._copy()), _resourceOp(src._resourceOp), _name(src._name), _unit(src._unit), _id(src._id), _errorCode(RES_SUCCESS), _actionsOnWrite((src._actionsOnWrite ? src._actionsOnWrite->clone() : nullptr)), _actionsOnRead((src._actionsOnRead ? src._actionsOnRead->clone() : nullptr)), _actionsOnExec((src._actionsOnExec ? src._actionsOnExec->clone() : nullptr)) {}
+    Resource(Resource &&src) : _value(src._value), _resourceOp(src._resourceOp), _name(src._name), _unit(src._unit), _id(src._id), _errorCode(RES_SUCCESS), _actionsOnWrite((src._actionsOnWrite ? src._actionsOnWrite->move() : nullptr)), _actionsOnRead((src._actionsOnRead ? src._actionsOnRead->move() : nullptr)), _actionsOnExec((src._actionsOnExec ? src._actionsOnExec->move() : nullptr))
+    {
+        src._value = nullptr;
+        src._actionsOnWrite = nullptr;
+        src._actionsOnRead = nullptr;
+        src._actionsOnExec = nullptr;
+    }
 
     template <class T>
-    Resource(const T &src, ResourceOp rights = ResourceOp::RES_RD, const std::string &name = std::string("name"), Units unit = Units::NA) : _value(new(new(malloc(sizeof(Head) + sizeof(T))) THead<T>() + 1) T(src)), _resourceOp(rights), _name(name), _unit(unit), _errorCode(RES_SUCCESS) {}
+    Resource(const T &src, ResourceOp rights = ResourceOp::RES_RD, const std::string &name = std::string("name"), Units unit = Units::NA, size_t id = 0) : _value(new(new(malloc(sizeof(Head) + sizeof(T))) THead<T>() + 1) T(src)), _resourceOp(rights), _name(name), _unit(unit), _id(id), _errorCode(RES_SUCCESS) {}
     ~Resource();
 
     bool Empty() const;
@@ -112,6 +119,7 @@ public:
     const ResourceOp &GetOp() const;
     const std::string &GetName() const;
     const Units &GetUnit() const;
+    const size_t &GetId() const;
     int GetErrorCode();
 
     template <class T>
@@ -138,7 +146,7 @@ public:
         }
 
         if (_actionsOnRead)
-            (*((ResCallback<T> *)_actionsOnWrite))(*(T *)_value);
+            (*((ResCallback<T> *)_actionsOnRead))(*(T *)_value);
 
         return (T *)_value;
     }

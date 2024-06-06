@@ -12,12 +12,11 @@
 
 #include "node_object.h"
 
-template <typename UserStruct>
-uint8_t NodeObject<UserStruct>::_objectCreate(lwm2m_context_t *contextP,
-                                              uint16_t instanceId,
-                                              int numData,
-                                              lwm2m_data_t *dataArray,
-                                              lwm2m_object_t *objectP)
+uint8_t NodeObject::_objectCreate(lwm2m_context_t *contextP,
+                                  uint16_t instanceId,
+                                  int numData,
+                                  lwm2m_data_t *dataArray,
+                                  lwm2m_object_t *objectP)
 {
     ObjectList *objectInstance;
     uint8_t result;
@@ -44,10 +43,9 @@ uint8_t NodeObject<UserStruct>::_objectCreate(lwm2m_context_t *contextP,
     return result;
 }
 
-template <typename UserStruct>
-uint8_t NodeObject<UserStruct>::_objectDelete(lwm2m_context_t *contextP,
-                                              uint16_t instanceId,
-                                              lwm2m_object_t *objectP)
+uint8_t NodeObject::_objectDelete(lwm2m_context_t *contextP,
+                                  uint16_t instanceId,
+                                  lwm2m_object_t *objectP)
 {
     ObjectList *objectInstance;
 
@@ -63,15 +61,14 @@ uint8_t NodeObject<UserStruct>::_objectDelete(lwm2m_context_t *contextP,
     return COAP_202_DELETED;
 }
 
-template <typename UserStruct>
-uint8_t NodeObject<UserStruct>::_objectDiscover(lwm2m_context_t *contextP,
-                                                uint16_t instanceId,
-                                                int *numDataP,
-                                                lwm2m_data_t **dataArrayP,
-                                                lwm2m_object_t *objectP)
+uint8_t NodeObject::_objectDiscover(lwm2m_context_t *contextP,
+                                    uint16_t instanceId,
+                                    int *numDataP,
+                                    lwm2m_data_t **dataArrayP,
+                                    lwm2m_object_t *objectP)
 {
     uint8_t result;
-    int i;
+    int i = 0;
 
     /* Unused parameter */
     (void)contextP;
@@ -89,7 +86,10 @@ uint8_t NodeObject<UserStruct>::_objectDiscover(lwm2m_context_t *contextP,
         *numDataP = nbRes;
 
         for (const auto &pair : _resources)
+        {
             (*dataArrayP)[i].id = static_cast<uint16_t>(pair.first);
+            ++i;
+        }
     }
     else
     {
@@ -97,6 +97,7 @@ uint8_t NodeObject<UserStruct>::_objectDiscover(lwm2m_context_t *contextP,
         {
             if (_resources.find((*dataArrayP)[i].id) == _resources.end())
             {
+                std::cout << "Discover fail" << std::endl;
                 result = COAP_404_NOT_FOUND;
             }
         }
@@ -105,16 +106,15 @@ uint8_t NodeObject<UserStruct>::_objectDiscover(lwm2m_context_t *contextP,
     return result;
 }
 
-template <typename UserStruct>
-uint8_t NodeObject<UserStruct>::_objectRead(lwm2m_context_t *contextP,
-                                            uint16_t instanceId,
-                                            int *numDataP,
-                                            lwm2m_data_t **dataArrayP,
-                                            lwm2m_object_t *objectP)
+uint8_t NodeObject::_objectRead(lwm2m_context_t *contextP,
+                                uint16_t instanceId,
+                                int *numDataP,
+                                lwm2m_data_t **dataArrayP,
+                                lwm2m_object_t *objectP)
 {
     ObjectList *objectInstance;
     uint8_t result;
-    int i;
+    int i = 0;
 
     /* Unused parameter */
     (void)contextP;
@@ -134,7 +134,10 @@ uint8_t NodeObject<UserStruct>::_objectRead(lwm2m_context_t *contextP,
         *numDataP = nbRes;
 
         for (const auto &pair : _resources)
+        {
             (*dataArrayP)[i].id = static_cast<uint16_t>(pair.first);
+            ++i;
+        }
     }
 
     i = 0;
@@ -153,21 +156,22 @@ uint8_t NodeObject<UserStruct>::_objectRead(lwm2m_context_t *contextP,
             }
             else
             {
-                Resource objectRes(*((*resourceIt).second));
+                Resource *objectRes = (*resourceIt).second;
                 result = COAP_205_CONTENT;
 
-                if (objectRes.Type() == typeid(int))
-                    lwm2m_data_encode_int(*(objectRes.Read<int>()), (*dataArrayP) + i);
-                else if (objectRes.Type() == typeid(bool))
-                    lwm2m_data_encode_bool(*(objectRes.Read<bool>()), (*dataArrayP) + i);
-                else if (objectRes.Type() == typeid(float))
-                    lwm2m_data_encode_float(*(objectRes.Read<float>()), (*dataArrayP) + i);
-                else if (objectRes.Type() == typeid(double))
-                    lwm2m_data_encode_float(*(objectRes.Read<double>()), (*dataArrayP) + i);
-                else if (objectRes.Type() == typeid(std::string)){
-                    std::cout << "String = " << objectRes.Read<std::string>() << std::endl;
-                    lwm2m_data_encode_string((*(objectRes.Read<std::string>())).c_str(), (*dataArrayP) + i);
+                if ((*objectRes).Type() == typeid(int))
+                    lwm2m_data_encode_int(*((*objectRes).Read<int>()), (*dataArrayP) + i);
+                else if ((*objectRes).Type() == typeid(bool))
+                    lwm2m_data_encode_bool(*((*objectRes).Read<bool>()), (*dataArrayP) + i);
+                else if ((*objectRes).Type() == typeid(float))
+                    lwm2m_data_encode_float(*((*objectRes).Read<float>()), (*dataArrayP) + i);
+                else if ((*objectRes).Type() == typeid(double))
+                    lwm2m_data_encode_float(*((*objectRes).Read<double>()), (*dataArrayP) + i);
+                else if ((*objectRes).Type() == typeid(std::string))
+                {
+                    lwm2m_data_encode_string((*((*objectRes).Read<std::string>())).c_str(), (*dataArrayP) + i);
                 }
+
                 else
                     result = COAP_404_NOT_FOUND;
             }
@@ -178,13 +182,12 @@ uint8_t NodeObject<UserStruct>::_objectRead(lwm2m_context_t *contextP,
     return result;
 }
 
-template <typename UserStruct>
-uint8_t NodeObject<UserStruct>::_objectWrite(lwm2m_context_t *contextP,
-                                             uint16_t instanceId,
-                                             int numData,
-                                             lwm2m_data_t *dataArray,
-                                             lwm2m_object_t *objectP,
-                                             lwm2m_write_type_t writeType)
+uint8_t NodeObject::_objectWrite(lwm2m_context_t *contextP,
+                                 uint16_t instanceId,
+                                 int numData,
+                                 lwm2m_data_t *dataArray,
+                                 lwm2m_object_t *objectP,
+                                 lwm2m_write_type_t writeType)
 {
     ObjectList *objectInstance;
     int i;
@@ -225,37 +228,37 @@ uint8_t NodeObject<UserStruct>::_objectWrite(lwm2m_context_t *contextP,
             }
             else
             {
-                Resource objectRes(*((*resourceIt).second));
+                Resource *objectRes = (*resourceIt).second;
 
-                if (objectRes.Type() == typeid(int))
+                if ((*objectRes).Type() == typeid(int))
                 {
                     int64_t valI;
                     lwm2m_data_decode_int(dataArray + i, &valI);
-                    result = (objectRes.Write<int>((int)valI) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+                    result = ((*objectRes).Write<int>((int)valI) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
                 }
-                else if (objectRes.Type() == typeid(bool))
+                else if ((*objectRes).Type() == typeid(bool))
                 {
                     bool valB;
                     lwm2m_data_decode_bool(dataArray + i, &valB);
-                    result = (objectRes.Write<bool>(valB) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+                    result = ((*objectRes).Write<bool>(valB) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
                 }
-                else if (objectRes.Type() == typeid(float))
+                else if ((*objectRes).Type() == typeid(float))
                 {
                     double valF;
                     lwm2m_data_decode_float(dataArray + i, &valF);
-                    result = (objectRes.Write<float>((float)valF) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+                    result = ((*objectRes).Write<float>((float)valF) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
                 }
-                else if (objectRes.Type() == typeid(double))
+                else if ((*objectRes).Type() == typeid(double))
                 {
                     double valD;
                     lwm2m_data_decode_float(dataArray + i, &valD);
-                    result = (objectRes.Write<double>(valD) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+                    result = ((*objectRes).Write<double>(valD) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
                 }
-                else if (objectRes.Type() == typeid(std::string))
+                else if ((*objectRes).Type() == typeid(std::string))
                 {
-                    char *valS;
-                    strncpy(valS, (char *)dataArray[i].value.asBuffer.buffer, dataArray[i].value.asBuffer.length);
-                    result = (objectRes.Write<std::string>(std::string(valS)) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+                    std::string stringValue = std::string((char *)(dataArray[i].value.asBuffer.buffer));
+                    stringValue.resize(dataArray[i].value.asBuffer.length);
+                    result = ((*objectRes).Write<std::string>(stringValue) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
                 }
                 else
                     result = COAP_404_NOT_FOUND;
@@ -267,13 +270,12 @@ uint8_t NodeObject<UserStruct>::_objectWrite(lwm2m_context_t *contextP,
     return result;
 }
 
-template <typename UserStruct>
-uint8_t NodeObject<UserStruct>::_objectExec(lwm2m_context_t *contextP,
-                                            uint16_t instanceId,
-                                            uint16_t resourceId,
-                                            uint8_t *buffer,
-                                            int length,
-                                            lwm2m_object_t *objectP)
+uint8_t NodeObject::_objectExec(lwm2m_context_t *contextP,
+                                uint16_t instanceId,
+                                uint16_t resourceId,
+                                uint8_t *buffer,
+                                int length,
+                                lwm2m_object_t *objectP)
 {
     ObjectList *objectInstance;
     uint8_t result;
@@ -283,7 +285,9 @@ uint8_t NodeObject<UserStruct>::_objectExec(lwm2m_context_t *contextP,
 
     objectInstance = (ObjectList *)lwm2m_list_find(objectP->instanceList, instanceId);
     if (!objectInstance)
+    {
         return COAP_404_NOT_FOUND;
+    }
 
     auto resourceIt = _resources.find(static_cast<size_t>(resourceId));
     if (resourceIt == _resources.end())
@@ -311,74 +315,67 @@ uint8_t NodeObject<UserStruct>::_objectExec(lwm2m_context_t *contextP,
     return result;
 }
 
-template <typename UserStruct>
-uint8_t NodeObject<UserStruct>::objectCreateStatic(lwm2m_context_t *contextP,
-                                                   uint16_t instanceId,
-                                                   int numData,
-                                                   lwm2m_data_t *dataArray,
-                                                   lwm2m_object_t *objectP)
+uint8_t NodeObject::objectCreateStatic(lwm2m_context_t *contextP,
+                                       uint16_t instanceId,
+                                       int numData,
+                                       lwm2m_data_t *dataArray,
+                                       lwm2m_object_t *objectP)
 {
-    NodeObject<UserStruct> *instance = static_cast<NodeObject<UserStruct> *>(objectP->userData);
+    NodeObject *instance = static_cast<NodeObject *>(objectP->userData);
     return instance->_objectCreate(contextP, instanceId, numData, dataArray, objectP);
 }
 
-template <typename UserStruct>
-uint8_t NodeObject<UserStruct>::objectDeleteStatic(lwm2m_context_t *contextP,
-                                                   uint16_t instanceId,
-                                                   lwm2m_object_t *objectP)
+uint8_t NodeObject::objectDeleteStatic(lwm2m_context_t *contextP,
+                                       uint16_t instanceId,
+                                       lwm2m_object_t *objectP)
 {
-    NodeObject<UserStruct> *instance = static_cast<NodeObject<UserStruct> *>(objectP->userData);
+    NodeObject *instance = static_cast<NodeObject *>(objectP->userData);
     return instance->_objectDelete(contextP, instanceId, objectP);
 }
 
-template <typename UserStruct>
-uint8_t NodeObject<UserStruct>::objectDiscoverStatic(lwm2m_context_t *contextP,
-                                                     uint16_t instanceId,
-                                                     int *numDataP,
-                                                     lwm2m_data_t **dataArrayP,
-                                                     lwm2m_object_t *objectP)
+uint8_t NodeObject::objectDiscoverStatic(lwm2m_context_t *contextP,
+                                         uint16_t instanceId,
+                                         int *numDataP,
+                                         lwm2m_data_t **dataArrayP,
+                                         lwm2m_object_t *objectP)
 {
-    NodeObject<UserStruct> *instance = static_cast<NodeObject<UserStruct> *>(objectP->userData);
+    NodeObject *instance = static_cast<NodeObject *>(objectP->userData);
     return instance->_objectDiscover(contextP, instanceId, numDataP, dataArrayP, objectP);
 }
 
-template <typename UserStruct>
-uint8_t NodeObject<UserStruct>::objectReadStatic(lwm2m_context_t *contextP,
-                                                 uint16_t instanceId,
-                                                 int *numDataP,
-                                                 lwm2m_data_t **dataArrayP,
-                                                 lwm2m_object_t *objectP)
+uint8_t NodeObject::objectReadStatic(lwm2m_context_t *contextP,
+                                     uint16_t instanceId,
+                                     int *numDataP,
+                                     lwm2m_data_t **dataArrayP,
+                                     lwm2m_object_t *objectP)
 {
-    NodeObject<UserStruct> *instance = static_cast<NodeObject<UserStruct> *>(objectP->userData);
+    NodeObject *instance = static_cast<NodeObject *>(objectP->userData);
     return instance->_objectRead(contextP, instanceId, numDataP, dataArrayP, objectP);
 }
 
-template <typename UserStruct>
-uint8_t NodeObject<UserStruct>::objectWriteStatic(lwm2m_context_t *contextP,
-                                                  uint16_t instanceId,
-                                                  int numData,
-                                                  lwm2m_data_t *dataArray,
-                                                  lwm2m_object_t *objectP,
-                                                  lwm2m_write_type_t writeType)
+uint8_t NodeObject::objectWriteStatic(lwm2m_context_t *contextP,
+                                      uint16_t instanceId,
+                                      int numData,
+                                      lwm2m_data_t *dataArray,
+                                      lwm2m_object_t *objectP,
+                                      lwm2m_write_type_t writeType)
 {
-    NodeObject<UserStruct> *instance = static_cast<NodeObject<UserStruct> *>(objectP->userData);
+    NodeObject *instance = static_cast<NodeObject *>(objectP->userData);
     return instance->_objectWrite(contextP, instanceId, numData, dataArray, objectP, writeType);
 }
 
-template <typename UserStruct>
-uint8_t NodeObject<UserStruct>::objectExecStatic(lwm2m_context_t *contextP,
-                                                 uint16_t instanceId,
-                                                 uint16_t resourceId,
-                                                 uint8_t *buffer,
-                                                 int length,
-                                                 lwm2m_object_t *objectP)
+uint8_t NodeObject::objectExecStatic(lwm2m_context_t *contextP,
+                                     uint16_t instanceId,
+                                     uint16_t resourceId,
+                                     uint8_t *buffer,
+                                     int length,
+                                     lwm2m_object_t *objectP)
 {
-    NodeObject<UserStruct> *instance = static_cast<NodeObject<UserStruct> *>(objectP->userData);
+    NodeObject *instance = static_cast<NodeObject *>(objectP->userData);
     return instance->_objectExec(contextP, instanceId, resourceId, buffer, length, objectP);
 }
 
-template <typename UserStruct>
-lwm2m_object_t *NodeObject<UserStruct>::Get()
+lwm2m_object_t *NodeObject::Get()
 {
     lwm2m_object_t *objectDescr;
 
@@ -389,9 +386,62 @@ lwm2m_object_t *NodeObject<UserStruct>::Get()
         memset(objectDescr, 0, sizeof(lwm2m_object_t));
         objectDescr->objID = _objectId;
 
-        printf("InstanceID = %u\r\n", _userStruct.instanceId);
+        // Security object need it's own initialisation
+        if (_objectId == 0)
+        {
+            security_instance_t *securityInstance;
+            securityInstance = (security_instance_t *)lwm2m_malloc(sizeof(security_instance_t));
+            if (NULL == securityInstance)
+            {
+                lwm2m_free(objectDescr);
+                return NULL;
+            }
+            memset(securityInstance, 0, sizeof(security_instance_t));
+            securityInstance->instanceId = 0;
+            std::string uriStr(*_resources[0]->Read<std::string>());
+            securityInstance->uri = (char *)lwm2m_malloc(uriStr.size() + 1);
+            strcpy(securityInstance->uri, uriStr.c_str());
 
-        objectDescr->instanceList = LWM2M_LIST_ADD(objectDescr->instanceList, &_userStruct);
+            securityInstance->securityMode = *_resources[2]->Read<int>();
+            std::string bsPskId(*_resources[3]->Read<std::string>());
+            std::string psk(*_resources[5]->Read<std::string>());
+            std::cout << "Psk is = " << psk << std::endl;
+
+            securityInstance->publicIdentity = strdup(bsPskId.c_str());
+            securityInstance->publicIdLen = bsPskId.size();
+            // securityInstance->secretKey = strdup(psk.c_str());
+            securityInstance->secretKeyLen = psk.size();
+
+            securityInstance->isBootstrap = *_resources[1]->Read<bool>();
+            securityInstance->shortID = *_resources[10]->Read<int>();
+            securityInstance->clientHoldOffTime = *_resources[11]->Read<int>();
+
+            printf("URI = %s\n", securityInstance->uri);
+            printf("Secu mode = %d\n", securityInstance->securityMode);
+            printf("Public id = %s\n", securityInstance->publicIdentity);
+            printf("Public id len = %d\n", securityInstance->publicIdLen);
+            printf("Secret key = %s\n", securityInstance->secretKey);
+            printf("Secret key len = %d\n", securityInstance->secretKeyLen);
+            printf("Is bootstrap = %d\n", securityInstance->isBootstrap);
+            printf("Short id = %d\n", securityInstance->shortID);
+            printf("Client hold off = %d\n", securityInstance->clientHoldOffTime);
+
+            objectDescr->instanceList = LWM2M_LIST_ADD(objectDescr->instanceList, securityInstance);
+        }
+        else
+        {
+            ObjectList *objectInstance = (ObjectList *)lwm2m_malloc(sizeof(ObjectList));
+            if (!objectInstance)
+            {
+                lwm2m_free(objectDescr);
+                return nullptr;
+            }
+            objectInstance->instanceId = _instanceId;
+            objectInstance->next = nullptr;
+
+            objectDescr->instanceList = LWM2M_LIST_ADD(objectDescr->instanceList, objectInstance);
+        }
+
         objectDescr->createFunc = &NodeObject::objectCreateStatic;
         objectDescr->deleteFunc = &NodeObject::objectDeleteStatic;
         objectDescr->discoverFunc = &NodeObject::objectDiscoverStatic;
@@ -402,6 +452,12 @@ lwm2m_object_t *NodeObject<UserStruct>::Get()
     }
 
     return objectDescr;
+}
+
+NodeObject::~NodeObject(){
+    for(auto pair : _resources){
+        delete pair.second;
+    }
 }
 
 #endif

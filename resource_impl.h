@@ -42,6 +42,10 @@ const Units &Resource::GetUnit() const {
     return _unit;
 }
 
+const size_t &Resource::GetId() const{
+    return _id;
+}
+
 int Resource::GetErrorCode() {
     int errorCode = _errorCode;
     _errorCode = RES_SUCCESS;

@@ -23,6 +23,8 @@ class ResCallbackBase
 {
 public:
     virtual ~ResCallbackBase() {}
+    virtual ResCallbackBase *clone() const = 0;
+    virtual ResCallbackBase *move() noexcept = 0;
 };
 
 template <class T>
@@ -33,10 +35,20 @@ public:
     using FunctionPtr = std::shared_ptr<Function>;
     using Functions = std::vector<FunctionPtr>;
 
-    ResCallback() {}
+    ResCallback() : _functions({}) {}
     ResCallback(const ResCallback &src) : _functions(src._functions) {}
-    ResCallback(ResCallback &&src) : _functions(src._functions) { src._functions = nullptr; }
+    ResCallback(ResCallback &&src) : _functions(std::move(src._functions)) {}
     ~ResCallback() override {}
+
+    ResCallbackBase *clone() const override
+    {
+        return new ResCallback<T>(*this);
+    }
+
+    ResCallbackBase *move() noexcept override
+    {
+        return new ResCallback<T>(std::move(*this));
+    }
 
     FunctionPtr AddListener(Function f)
     {

@@ -7,8 +7,8 @@
  *  @date 5/2/2024
  */
 
-#ifndef OBJECT_H
-#define OBJECT_H
+#ifndef NODE_OBJECT_H
+#define NODE_OBJECT_H
 
 #include <cstdio>
 #include <iostream>
@@ -23,30 +23,41 @@
 
 #include "resource.h"
 
-template <typename T, typename = std::void_t<>>
-struct HasRequiredFields : std::false_type
+typedef struct _security_instance_
 {
-};
+    struct _security_instance_ * next;        // matches lwm2m_list_t::next
+    uint16_t                     instanceId;  // matches lwm2m_list_t::id
+    char *                       uri;
+    bool                         isBootstrap;    
+    uint8_t                      securityMode;
+    char *                       publicIdentity;
+    uint16_t                     publicIdLen;
+    char *                       serverPublicKey;
+    uint16_t                     serverPublicKeyLen;
+    char *                       secretKey;
+    uint16_t                     secretKeyLen;
+    uint8_t                      smsSecurityMode;
+    char *                       smsParams; // SMS binding key parameters
+    uint16_t                     smsParamsLen;
+    char *                       smsSecret; // SMS binding secret key
+    uint16_t                     smsSecretLen;
+    uint16_t                     shortID;
+    uint32_t                     clientHoldOffTime;
+    uint32_t                     bootstrapServerAccountTimeout;
+} security_instance_t;
 
-template <typename T>
-struct HasRequiredFields<T, std::void_t<decltype(std::declval<T>().next), decltype(std::declval<T>().instanceId)>> : std::true_type
-{
-};
-
-template <typename UserStruct>
 class NodeObject
 {
 private:
     size_t _objectId;
-    std::map<size_t, std::unique_ptr<Resource>> _resources;
+    size_t _instanceId;
+    std::map<size_t, Resource *> _resources;
 
     struct ObjectList
     {
         struct ObjectList *next;
         uint16_t instanceId;
     };
-
-    UserStruct _userStruct;
 
     uint8_t _objectRead(lwm2m_context_t *contextP,
                         uint16_t instanceId,
@@ -121,78 +132,22 @@ private:
                                     lwm2m_object_t *objectP);
 
 public:
-    NodeObject() : _objectId(0), _userStruct(nullptr), _resources({}) {}
-
-    NodeObject(const NodeObject &) = delete;
-    NodeObject &operator=(const NodeObject &) = delete;
-
-    NodeObject(const size_t objectId, const UserStruct &userStruct, const std::vector<std::type_info const *> &types, const std::vector<ResourceOp> &resourcesOp, const std::vector<std::string> &names, const std::vector<Units> &units)
+    NodeObject() : _objectId(0), _instanceId(0), _resources({}) {}
+    NodeObject(const NodeObject &src) : _objectId(src._objectId), _instanceId(src._instanceId), _resources(src._resources) {}
+    NodeObject(NodeObject &&src) : _objectId(src._objectId), _instanceId(src._instanceId), _resources(std::move(src._resources))
     {
-
-        // Ensure all vector describing resources have same number of resources
-        if ((types.size() == resourcesOp.size()) && (resourcesOp.size() == names.size()) && (names.size() == units.size()) && HasRequiredFields<UserStruct>::value)
+        src._objectId = 0;
+        src._instanceId = 0;
+    }
+    NodeObject(uint16_t objId, uint16_t instId, std::vector<Resource *> resources) : _objectId(objId), _instanceId(instId)
+    {
+        for (Resource *res : resources)
         {
-            _userStruct = userStruct;
-            _objectId = objectId;
-
-            // Create resources based on the vectors describing each resource
-            Resource *res;
-            // Positioning dataExplorer pointer after the first two fields that are userStruct ptr and instanceId
-            void *dataExplorer = ((void *)&userStruct + sizeof(UserStruct *) + sizeof(uint16_t));
-            for (size_t i = 0; i < names.size(); ++i)
-            {
-                if (*types[i] == typeid(int))
-                {
-                    res = new Resource(*((int *)dataExplorer), resourcesOp[i], names[i], units[i]);
-                    dataExplorer += sizeof(int);
-                }
-                else if (*types[i] == typeid(bool))
-                {
-                    res = new Resource(*((bool *)dataExplorer), resourcesOp[i], names[i], units[i]);
-                    dataExplorer += sizeof(bool);
-                }
-                else if (*types[i] == typeid(float))
-                {
-                    res = new Resource(*((float *)dataExplorer), resourcesOp[i], names[i], units[i]);
-                    dataExplorer += sizeof(float);
-                }
-                else if (*types[i] == typeid(double))
-                {
-                    res = new Resource(*((double *)dataExplorer), resourcesOp[i], names[i], units[i]);
-                    dataExplorer += sizeof(double);
-                }
-                else if (*types[i] == typeid(std::string))
-                {
-                    std::cout << "Constructor string = " << std::endl;
-                    res = new Resource(*((std::string *)dataExplorer), resourcesOp[i], names[i], units[i]);
-                    dataExplorer += sizeof(std::string);
-                }
-                else
-                {
-                    std::cout << "Failed to instanciate resources, types not corresponding" << std::endl;
-                    _userStruct = {};
-                    _objectId = 0;
-                    break;
-                }
-
-                _resources[i] = std::make_unique<Resource>(*res);
-            }
-        }
-        else
-        {
-            std::cout << "Failed to instanciate resources, vector size are not the same" << std::endl;
-            _userStruct = {};
-            _objectId = 0;
+            _resources[res->GetId()] = res;
         }
     }
 
-    ~NodeObject()
-    {
-        for (auto &pair : _resources)
-        {
-            pair.second.reset();
-        }
-    }
+    ~NodeObject();
 
     lwm2m_object_t *Get();
 };
