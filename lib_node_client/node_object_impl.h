@@ -27,10 +27,12 @@ uint8_t NodeObject::_objectCreate(lwm2m_context_t *contextP,
     memset(objectInstance, 0, sizeof(ObjectList));
 
     objectInstance->instanceId = instanceId;
+    objectInstance->next = nullptr;
+    objectInstance->objectInstance = this;
     objectP->instanceList = LWM2M_LIST_ADD(objectP->instanceList, objectInstance);
 
     result = _objectWrite(contextP, instanceId, numData, dataArray, objectP, LWM2M_WRITE_REPLACE_RESOURCES);
-
+    std::cout << "Create result is " << result << std::endl;
     if (result != COAP_204_CHANGED)
     {
         (void)_objectDelete(contextP, instanceId, objectP);
@@ -97,7 +99,6 @@ uint8_t NodeObject::_objectDiscover(lwm2m_context_t *contextP,
         {
             if (_resources.find((*dataArrayP)[i].id) == _resources.end())
             {
-                std::cout << "Discover fail" << std::endl;
                 result = COAP_404_NOT_FOUND;
             }
         }
@@ -126,7 +127,11 @@ uint8_t NodeObject::_objectRead(lwm2m_context_t *contextP,
     // is the server asking for the full instance ?
     if (*numDataP == 0)
     {
-        size_t nbRes = _resources.size();
+        size_t nbRes = 0;
+        for (const auto &pair : _resources)
+            if (pair.second->GetOp() == ResourceOp::RES_RDWR || pair.second->GetOp() == ResourceOp::RES_RD)
+                nbRes++;
+
         *dataArrayP = lwm2m_data_new(nbRes);
         if (!(*dataArrayP))
             return COAP_500_INTERNAL_SERVER_ERROR;
@@ -135,9 +140,13 @@ uint8_t NodeObject::_objectRead(lwm2m_context_t *contextP,
 
         for (const auto &pair : _resources)
         {
-            (*dataArrayP)[i].id = static_cast<uint16_t>(pair.first);
-            ++i;
+            if (pair.second->GetOp() == ResourceOp::RES_RDWR || pair.second->GetOp() == ResourceOp::RES_RD)
+            {
+                (*dataArrayP)[i].id = static_cast<uint16_t>(pair.first);
+                ++i;
+            }
         }
+        std::cout << "Asking for full instance" << std::endl;
     }
 
     i = 0;
@@ -156,6 +165,7 @@ uint8_t NodeObject::_objectRead(lwm2m_context_t *contextP,
             }
             else
             {
+                std::cout << "Resource asked nbr is " << (*dataArrayP)[i].id << std::endl;
                 Resource *objectRes = (*resourceIt).second;
                 result = COAP_205_CONTENT;
 
@@ -171,7 +181,6 @@ uint8_t NodeObject::_objectRead(lwm2m_context_t *contextP,
                 {
                     lwm2m_data_encode_string((*((*objectRes).Read<std::string>())).c_str(), (*dataArrayP) + i);
                 }
-
                 else
                     result = COAP_404_NOT_FOUND;
             }
@@ -299,15 +308,15 @@ uint8_t NodeObject::_objectExec(lwm2m_context_t *contextP,
         Resource objectRes(*((*resourceIt).second));
 
         if (objectRes.Type() == typeid(int))
-            result = (objectRes.Exec<int>() == RES_SUCCESS ? COAP_205_CONTENT : COAP_405_METHOD_NOT_ALLOWED);
+            result = (objectRes.Exec<int>() == RES_SUCCESS ? COAP_204_CHANGED : COAP_405_METHOD_NOT_ALLOWED);
         else if (objectRes.Type() == typeid(bool))
-            result = (objectRes.Exec<bool>() == RES_SUCCESS ? COAP_205_CONTENT : COAP_405_METHOD_NOT_ALLOWED);
+            result = (objectRes.Exec<bool>() == RES_SUCCESS ? COAP_204_CHANGED : COAP_405_METHOD_NOT_ALLOWED);
         else if (objectRes.Type() == typeid(float))
-            result = (objectRes.Exec<float>() == RES_SUCCESS ? COAP_205_CONTENT : COAP_405_METHOD_NOT_ALLOWED);
+            result = (objectRes.Exec<float>() == RES_SUCCESS ? COAP_204_CHANGED : COAP_405_METHOD_NOT_ALLOWED);
         else if (objectRes.Type() == typeid(double))
-            result = (objectRes.Exec<double>() == RES_SUCCESS ? COAP_205_CONTENT : COAP_405_METHOD_NOT_ALLOWED);
+            result = (objectRes.Exec<double>() == RES_SUCCESS ? COAP_204_CHANGED : COAP_405_METHOD_NOT_ALLOWED);
         else if (objectRes.Type() == typeid(std::string))
-            result = (objectRes.Exec<std::string>() == RES_SUCCESS ? COAP_205_CONTENT : COAP_405_METHOD_NOT_ALLOWED);
+            result = (objectRes.Exec<std::string>() == RES_SUCCESS ? COAP_204_CHANGED : COAP_405_METHOD_NOT_ALLOWED);
         else
             result = COAP_405_METHOD_NOT_ALLOWED;
     }
@@ -322,15 +331,28 @@ uint8_t NodeObject::objectCreateStatic(lwm2m_context_t *contextP,
                                        lwm2m_object_t *objectP)
 {
     NodeObject *instance = static_cast<NodeObject *>(objectP->userData);
-    return instance->_objectCreate(contextP, instanceId, numData, dataArray, objectP);
+    NodeObject *createdInstance = new NodeObject(*instance);
+    return createdInstance->_objectCreate(contextP, instanceId, numData, dataArray, objectP);
 }
 
 uint8_t NodeObject::objectDeleteStatic(lwm2m_context_t *contextP,
                                        uint16_t instanceId,
                                        lwm2m_object_t *objectP)
 {
-    NodeObject *instance = static_cast<NodeObject *>(objectP->userData);
-    return instance->_objectDelete(contextP, instanceId, objectP);
+    if(instanceId == 0){
+        return COAP_405_METHOD_NOT_ALLOWED;
+    }
+
+    NodeObject *instance;
+    for(ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next){
+        if(objectInstance->instanceId == instanceId){
+            instance = static_cast<NodeObject *>(objectInstance->objectInstance);
+            break;
+        }
+    }
+    uint8_t result = instance->_objectDelete(contextP, instanceId, objectP);
+    delete instance;
+    return result;
 }
 
 uint8_t NodeObject::objectDiscoverStatic(lwm2m_context_t *contextP,
@@ -339,7 +361,13 @@ uint8_t NodeObject::objectDiscoverStatic(lwm2m_context_t *contextP,
                                          lwm2m_data_t **dataArrayP,
                                          lwm2m_object_t *objectP)
 {
-    NodeObject *instance = static_cast<NodeObject *>(objectP->userData);
+    NodeObject *instance;
+    for(ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next){
+        if(objectInstance->instanceId == instanceId){
+            instance = static_cast<NodeObject *>(objectInstance->objectInstance);
+            break;
+        }
+    }
     return instance->_objectDiscover(contextP, instanceId, numDataP, dataArrayP, objectP);
 }
 
@@ -349,7 +377,14 @@ uint8_t NodeObject::objectReadStatic(lwm2m_context_t *contextP,
                                      lwm2m_data_t **dataArrayP,
                                      lwm2m_object_t *objectP)
 {
-    NodeObject *instance = static_cast<NodeObject *>(objectP->userData);
+    NodeObject *instance;
+    for(ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next){
+        if(objectInstance->instanceId == instanceId){
+            std::cout << "Oject instance is " << instanceId << std::endl;
+            instance = static_cast<NodeObject *>(objectInstance->objectInstance);
+            break;
+        }
+    }
     return instance->_objectRead(contextP, instanceId, numDataP, dataArrayP, objectP);
 }
 
@@ -360,7 +395,13 @@ uint8_t NodeObject::objectWriteStatic(lwm2m_context_t *contextP,
                                       lwm2m_object_t *objectP,
                                       lwm2m_write_type_t writeType)
 {
-    NodeObject *instance = static_cast<NodeObject *>(objectP->userData);
+    NodeObject *instance;
+    for(ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next){
+        if(objectInstance->instanceId == instanceId){
+            instance = static_cast<NodeObject *>(objectInstance->objectInstance);
+            break;
+        }
+    }
     return instance->_objectWrite(contextP, instanceId, numData, dataArray, objectP, writeType);
 }
 
@@ -371,7 +412,13 @@ uint8_t NodeObject::objectExecStatic(lwm2m_context_t *contextP,
                                      int length,
                                      lwm2m_object_t *objectP)
 {
-    NodeObject *instance = static_cast<NodeObject *>(objectP->userData);
+    NodeObject *instance;
+    for(ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next){
+        if(objectInstance->instanceId == instanceId){
+            instance = static_cast<NodeObject *>(objectInstance->objectInstance);
+            break;
+        }
+    }
     return instance->_objectExec(contextP, instanceId, resourceId, buffer, length, objectP);
 }
 
@@ -386,61 +433,17 @@ lwm2m_object_t *NodeObject::Get()
         memset(objectDescr, 0, sizeof(lwm2m_object_t));
         objectDescr->objID = _objectId;
 
-        // Security object need it's own initialisation
-        if (_objectId == 0)
+        ObjectList *objectInstance = (ObjectList *)lwm2m_malloc(sizeof(ObjectList));
+        if (!objectInstance)
         {
-            security_instance_t *securityInstance;
-            securityInstance = (security_instance_t *)lwm2m_malloc(sizeof(security_instance_t));
-            if (NULL == securityInstance)
-            {
-                lwm2m_free(objectDescr);
-                return NULL;
-            }
-            memset(securityInstance, 0, sizeof(security_instance_t));
-            securityInstance->instanceId = 0;
-            std::string uriStr(*_resources[0]->Read<std::string>());
-            securityInstance->uri = (char *)lwm2m_malloc(uriStr.size() + 1);
-            strcpy(securityInstance->uri, uriStr.c_str());
-
-            securityInstance->securityMode = *_resources[2]->Read<int>();
-            std::string bsPskId(*_resources[3]->Read<std::string>());
-            std::string psk(*_resources[5]->Read<std::string>());
-            std::cout << "Psk is = " << psk << std::endl;
-
-            securityInstance->publicIdentity = strdup(bsPskId.c_str());
-            securityInstance->publicIdLen = bsPskId.size();
-            // securityInstance->secretKey = strdup(psk.c_str());
-            securityInstance->secretKeyLen = psk.size();
-
-            securityInstance->isBootstrap = *_resources[1]->Read<bool>();
-            securityInstance->shortID = *_resources[10]->Read<int>();
-            securityInstance->clientHoldOffTime = *_resources[11]->Read<int>();
-
-            printf("URI = %s\n", securityInstance->uri);
-            printf("Secu mode = %d\n", securityInstance->securityMode);
-            printf("Public id = %s\n", securityInstance->publicIdentity);
-            printf("Public id len = %d\n", securityInstance->publicIdLen);
-            printf("Secret key = %s\n", securityInstance->secretKey);
-            printf("Secret key len = %d\n", securityInstance->secretKeyLen);
-            printf("Is bootstrap = %d\n", securityInstance->isBootstrap);
-            printf("Short id = %d\n", securityInstance->shortID);
-            printf("Client hold off = %d\n", securityInstance->clientHoldOffTime);
-
-            objectDescr->instanceList = LWM2M_LIST_ADD(objectDescr->instanceList, securityInstance);
+            lwm2m_free(objectDescr);
+            return nullptr;
         }
-        else
-        {
-            ObjectList *objectInstance = (ObjectList *)lwm2m_malloc(sizeof(ObjectList));
-            if (!objectInstance)
-            {
-                lwm2m_free(objectDescr);
-                return nullptr;
-            }
-            objectInstance->instanceId = _instanceId;
-            objectInstance->next = nullptr;
+        objectInstance->instanceId = _instanceId;
+        objectInstance->next = nullptr;
+        objectInstance->objectInstance = this;
 
-            objectDescr->instanceList = LWM2M_LIST_ADD(objectDescr->instanceList, objectInstance);
-        }
+        objectDescr->instanceList = LWM2M_LIST_ADD(objectDescr->instanceList, objectInstance);
 
         objectDescr->createFunc = &NodeObject::objectCreateStatic;
         objectDescr->deleteFunc = &NodeObject::objectDeleteStatic;
@@ -454,8 +457,19 @@ lwm2m_object_t *NodeObject::Get()
     return objectDescr;
 }
 
-NodeObject::~NodeObject(){
-    for(auto pair : _resources){
+Resource *NodeObject::GetResource(size_t id)
+{
+    auto resourceIt = _resources.find(id);
+    if (resourceIt != _resources.end())
+        return (*resourceIt).second;
+    else
+        return nullptr;
+}
+
+NodeObject::~NodeObject()
+{
+    for (auto pair : _resources)
+    {
         delete pair.second;
     }
 }

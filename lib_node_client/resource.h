@@ -123,6 +123,43 @@ public:
     int GetErrorCode();
 
     template <class T>
+    const T *GetValue(){
+        if (!_value)
+        {
+            _errorCode = VALUE_IS_EMPTY;
+            return nullptr;
+        }
+
+        // Check corresponding type between fct argument and _value
+        if (Type() != typeid(T))
+        {
+            _errorCode = VALUE_TYPE_NOT_CORRESPONDING;
+            return nullptr;
+        }
+
+        return (T *)_value;
+    }
+
+    template <class T>
+    int SetValue(const T &writeValue){
+        if (!_value)
+            _value = new (new (malloc(sizeof(Head) + sizeof(T))) THead<T>() + 1) T(writeValue);
+        else
+        {
+            // Check corresponding type between fct argument and _value
+            if (Type() != typeid(T))
+            {
+                _errorCode = VALUE_TYPE_NOT_CORRESPONDING;
+                return VALUE_TYPE_NOT_CORRESPONDING;
+            }
+
+            *(T *)_value = writeValue;
+        }
+
+        return RES_SUCCESS;
+    }
+
+    template <class T>
     T *Read()
     {
         if (!_value)

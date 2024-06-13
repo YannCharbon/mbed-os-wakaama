@@ -1,18 +1,18 @@
+#ifndef NODE_CLIENT_IMPL_H
+#define NODE_CLIENT_IMPL_H
+
 #include "node_client.h"
 
 int NodeClient::InitNetwork()
 {
     int ret = 0;
-    std::cout << "Obj vec address1 = " << _objects << " and size is " /*<< _objects->size()*/ << std::endl;
 
     // try to connect and get ip via DHCP.
     printf("=====================\n");
     printf("obtaining ip address...\n");
 
-    eth = EthInterface::get_default_instance();
-    ret = eth->connect();
-
-    std::cout << "Obj vec address2 = " << _objects << " and size is " /*<< _objects->size()*/ << std::endl;
+    _eth = EthInterface::get_default_instance();
+    ret = _eth->connect();
 
     if (ret != 0)
     {
@@ -20,20 +20,13 @@ int NodeClient::InitNetwork()
         return ret;
     }
 
-    std::cout << "Obj vec address3 = " << _objects << " and size is " /*<< _objects->size()*/ << std::endl;
-
     // Show the network address
     SocketAddress a;
-    eth->get_ip_address(&a);
+    _eth->get_ip_address(&a);
     printf("IP address: %s\n", a.get_ip_address() ? a.get_ip_address() : "None");
 
-    std::cout << "Obj vec address4 = " << _objects << " and size is " /*<< _objects->size()*/ << std::endl;
-
     NodeClient::_printInterfaceAddr(1);
-
-    std::cout << "Obj vec address5 = " << _objects << " and size is " << _objects->size() << std::endl;
-
-    std::cout << "Instance addr is " << this << std::endl;
+    
     return ret;
 }
 
@@ -178,12 +171,13 @@ void NodeClient::_printstate(lwm2m_context_t *lwm2mH)
 }
 
 int NodeClient::StartClient()
-{
-    std::cout << "Instance addr is " << this << std::endl;
-    if (_objects)
-        std::cout << "objects non null" << std::endl;
+{    
+    static bool clientStarted = false;
 
-    std::cout << "Obj vec address = " << _objects << " and size is " /*<< _objects->size()*/ << std::endl;
+    if(clientStarted == true)
+        return -1;
+
+    clientStarted = true;
 
     lwm2m_object_t **objArray = new lwm2m_object_t*[_objects->size()];
 
@@ -254,25 +248,12 @@ int NodeClient::StartClient()
 #endif
 
     objArray[0] = get_security_object(serverId, serverUri, pskId, pskBuffer, pskLen, false);
-    //lwm2m_object_t *securityObject = _objects->at(0)->Get();
-    //((security_instance_t *)(securityObject->instanceList->next))->secretKey = (char *) lwm2m_malloc(pskLen);
-    //memcpy(((security_instance_t *)(securityObject->instanceList->next))->secretKey, pskBuffer, pskLen);
-    //((security_instance_t *)(securityObject->instanceList->next))->secretKeyLen = pskLen;
-    //objArray[0] = _objects->at(0)->Get();
-    /*if (NULL == objArray[0])
-    {
-        fprintf(stderr, "Failed to create security object\r\n");
-        return -1;
-    }
-    data.securityObjP = objArray[0];*/
-
-    objArray[0] = get_security_object(serverId, serverUri, pskId, pskBuffer, pskLen, false);
     data.securityObjP = objArray[0];
 
-    for (size_t i = 1; i < _objects->size(); ++i)
+    for (size_t i = 0; i < _objects->size(); ++i)
     {
-        objArray[i] = _objects->at(i)->Get();
-        if (!objArray[i])
+        objArray[i+1] = _objects->at(i)->Get();
+        if (!objArray[i+1])
         {
             fprintf(stderr, "Failed to create object %lu\r\n", i);
             return -1;
@@ -291,7 +272,7 @@ int NodeClient::StartClient()
     data.connLayer = connectionlayer_create(lwm2mH);
 
     printf("lwm2m_configure\n");
-    result = lwm2m_configure(lwm2mH, CLIENT_ENDPOINT_NAME, NULL, NULL, OBJ_COUNT, objArray);
+    result = lwm2m_configure(lwm2mH, CLIENT_ENDPOINT_NAME, NULL, NULL, _objects->size(), objArray);
     if (result != 0)
     {
         fprintf(stderr, "lwm2m_configure() failed: 0x%X\r\n", result);
@@ -301,14 +282,16 @@ int NodeClient::StartClient()
 
     lwm2mMainThread.start(&NodeClient::_lwm2mMainThreadTask);
 
+    int i = 0;
     while (1)
     {
         ThisThread::sleep_for(1s);
-        //mbed_stats_heap_t heap_stats;
-        //mbed_stats_heap_get(&heap_stats);
+        // Test to update the resource device operating hours on device extension to see if server is able to update the red value
+        //((_objects->at(2))->GetResource(9))->SetValue<int>(i++);
     }
 
     delete objArray;
+    clientStarted = false;
 
     return 0;
 }
@@ -420,7 +403,6 @@ void *lwm2m_connect_server(uint16_t secObjInstID,
     port++;
 
 #if defined(USE_DTLS)
-    printf("Crash 10\r\n");
     newConnP = (connection_t *)dtlsconnection_create(dataP->connLayer, secObjInstID, dataP->sock, host, port,
                                                      dataP->addressFamily);
 #else
@@ -471,3 +453,5 @@ void lwm2m_close_connection(void *sessionH,
         }
     }
 }
+
+#endif

@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdio.h>
 
+#include "mbed.h"
 #include "node_object.h"
 #include "NetworkInterface.h"
 #include "EthernetInterface.h"
@@ -30,17 +31,10 @@ extern "C"
 #define SERVER_DTLS_PORT "5684"
 #define SERVER_PORT "5683"
 #define CLIENT_LOCAL_PORT 0 // Let OS decide
-#define OBJ_COUNT 10
 
-    extern lwm2m_object_t *get_object_device(void);
-    extern void free_object_device(lwm2m_object_t *objectP);
-    extern lwm2m_object_t *get_server_object(void);
-    extern void free_server_object(lwm2m_object_t *object);
     lwm2m_object_t *get_security_object(int serverId, const char *serverUri, char *bsPskId, char *psk, uint16_t pskLen, bool isBootstrap);
     extern void free_security_object(lwm2m_object_t *objectP);
     extern char *get_server_uri(lwm2m_object_t *objectP, uint16_t secObjInstID);
-    extern lwm2m_object_t *get_test_object(void);
-    extern void free_test_object(lwm2m_object_t *object);
 }
 
 static Thread lwm2mMainThread(osPriorityNormal, OS_STACK_SIZE, nullptr, "lwm2mMainThread");
@@ -76,8 +70,7 @@ public:
 
 private:
     std::vector<NodeObject *> *_objects;
-    NetworkInterface *eth;
-    
+    NetworkInterface *_eth;
 
     static void _printInterfaceAddr(int id);
     static void _printstate(lwm2m_context_t *lwm2mH);

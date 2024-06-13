@@ -23,29 +23,6 @@
 
 #include "resource.h"
 
-typedef struct _security_instance_
-{
-    struct _security_instance_ * next;        // matches lwm2m_list_t::next
-    uint16_t                     instanceId;  // matches lwm2m_list_t::id
-    char *                       uri;
-    bool                         isBootstrap;    
-    uint8_t                      securityMode;
-    char *                       publicIdentity;
-    uint16_t                     publicIdLen;
-    char *                       serverPublicKey;
-    uint16_t                     serverPublicKeyLen;
-    char *                       secretKey;
-    uint16_t                     secretKeyLen;
-    uint8_t                      smsSecurityMode;
-    char *                       smsParams; // SMS binding key parameters
-    uint16_t                     smsParamsLen;
-    char *                       smsSecret; // SMS binding secret key
-    uint16_t                     smsSecretLen;
-    uint16_t                     shortID;
-    uint32_t                     clientHoldOffTime;
-    uint32_t                     bootstrapServerAccountTimeout;
-} security_instance_t;
-
 class NodeObject
 {
 private:
@@ -57,6 +34,7 @@ private:
     {
         struct ObjectList *next;
         uint16_t instanceId;
+        NodeObject *objectInstance;
     };
 
     uint8_t _objectRead(lwm2m_context_t *contextP,
@@ -133,7 +111,11 @@ private:
 
 public:
     NodeObject() : _objectId(0), _instanceId(0), _resources({}) {}
-    NodeObject(const NodeObject &src) : _objectId(src._objectId), _instanceId(src._instanceId), _resources(src._resources) {}
+    NodeObject(const NodeObject &src) : _objectId(src._objectId), _instanceId(src._instanceId) {
+        for(auto pair : src._resources){
+            _resources[pair.first] = new Resource(*pair.second);
+        }
+    }
     NodeObject(NodeObject &&src) : _objectId(src._objectId), _instanceId(src._instanceId), _resources(std::move(src._resources))
     {
         src._objectId = 0;
@@ -146,6 +128,8 @@ public:
             _resources[res->GetId()] = res;
         }
     }
+
+    Resource *GetResource(size_t id);
 
     ~NodeObject();
 
