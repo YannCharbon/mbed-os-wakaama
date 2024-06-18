@@ -1,8 +1,18 @@
 {
-    "macros": [ "LWM2M_LITTLE_ENDIAN", "LWM2M_CLIENT_MODE", "LWM2M_SUPPORT_TLV", "LWM2M_SUPPORT_JSON",
-                "LWM2M_COAP_DEFAULT_BLOCK_SIZE=1024", "LWM2M_VERSION_1_0", "MBEDTLS_USER_CONFIG_FILE=\"config-ccm-psk-tls1_2.h\"", "USE_DTLS","MBED_HEAP_STATS_ENABLED=1",
-                "MBED_STACK_STATS_ENABLED=1",
-                "MBED_MEM_TRACING_ENABLED=1"],
+    "macros": [
+        "LWM2M_LITTLE_ENDIAN",
+        "LWM2M_CLIENT_MODE",
+        "LWM2M_SUPPORT_TLV",
+        "LWM2M_SUPPORT_JSON",
+        "LWM2M_COAP_DEFAULT_BLOCK_SIZE=1024",
+        "LWM2M_VERSION_1_0",
+        "MBEDTLS_USER_CONFIG_FILE=\"config-ccm-psk-tls1_2.h\"",
+        "USE_DTLS",
+        "MBED_HEAP_STATS_ENABLED=1",
+        "MBED_STACK_STATS_ENABLED=1",
+        "MBED_MEM_TRACING_ENABLED=1",
+        "CONNECT_TO_THINGSBOARD"
+    ],
     "target_overrides": {
         "*": {
             "platform.memory-tracing-enabled": true,
@@ -14,7 +24,10 @@
             "platform.stdio-buffered-serial": true
         },
         "ADDITIONAL_MACROS_FOR_DTLS": {
-            "macros": ["MBEDTLS_USER_CONFIG_FILE=\"config-ccm-psk-tls1_2.h\"", "USE_DTLS"]
+            "macros": [
+                "MBEDTLS_USER_CONFIG_FILE=\"config-ccm-psk-tls1_2.h\"",
+                "USE_DTLS"
+            ]
         }
     }
 }

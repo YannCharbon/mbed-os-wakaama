@@ -32,6 +32,12 @@ extern "C"
 #define SERVER_PORT "5683"
 #define CLIENT_LOCAL_PORT 0 // Let OS decide
 
+#define THINGSBOARD_SERVER_URL "2a05:d018:1db1:3d01:c117:6d9a:bd23:5c50"
+#define THINGSBOARD_SERVER_PORT "6683"
+#define THINGSBOARD_DTLS_SERVER_PORT "6684"
+#define THINGSBOARD_BOOTSTRAP_SERVER_PORT "5683"
+#define THINGSBOARD_DTLS_BOOTSTRAP_SERVER_PORT "5684"
+
     lwm2m_object_t *get_security_object(int serverId, const char *serverUri, char *bsPskId, char *psk, uint16_t pskLen, bool isBootstrap);
     extern void free_security_object(lwm2m_object_t *objectP);
     extern char *get_server_uri(lwm2m_object_t *objectP, uint16_t secObjInstID);

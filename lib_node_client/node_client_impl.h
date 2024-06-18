@@ -241,10 +241,16 @@ int NodeClient::StartClient()
 
     char serverUri[50];
     int serverId = 123;
+#ifdef CONNECT_TO_LESHAN
 #ifdef USE_DTLS
     sprintf(serverUri, "coaps://[%s]:%s", M2M_SERVER_URL, SERVER_DTLS_PORT);
 #else
     sprintf(serverUri, "coap://[%s]:%s", M2M_SERVER_URL, SERVER_PORT);
+#endif
+#endif
+
+#ifdef CONNECT_TO_THINGSBOARD
+    sprintf(serverUri, "coap://[%s]:%s", THINGSBOARD_SERVER_URL, THINGSBOARD_SERVER_PORT);
 #endif
 
     objArray[0] = get_security_object(serverId, serverUri, pskId, pskBuffer, pskLen, false);
