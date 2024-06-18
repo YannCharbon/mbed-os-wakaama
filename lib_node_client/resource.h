@@ -55,7 +55,8 @@ enum class Units
     WATT_HOUR,
     VAR,
     VAR_HOUR,
-    LX
+    LX,
+    KILOVAR_HOUR
 };
 
 /**
@@ -123,7 +124,7 @@ public:
     int GetErrorCode();
 
     template <class T>
-    const T *GetValue(){
+    T *GetValue(){
         if (!_value)
         {
             _errorCode = VALUE_IS_EMPTY;

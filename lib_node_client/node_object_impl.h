@@ -152,8 +152,10 @@ uint8_t NodeObject::_objectRead(lwm2m_context_t *contextP,
     i = 0;
     do
     {
+        std::cout << "Read resource type is " << (*dataArrayP)[i].type << std::endl;
         if ((*dataArrayP)[i].type == LWM2M_TYPE_MULTIPLE_RESOURCE)
         {
+            std::cout << "Multiple resources !!!" << std::endl;
             result = COAP_404_NOT_FOUND;
         }
         else
@@ -181,13 +183,53 @@ uint8_t NodeObject::_objectRead(lwm2m_context_t *contextP,
                 {
                     lwm2m_data_encode_string((*((*objectRes).Read<std::string>())).c_str(), (*dataArrayP) + i);
                 }
+                else if ((*objectRes).Type() == typeid(std::map<size_t, Resource *>))
+                {
+                    const std::map<size_t, Resource *> *resourcesInstList = ((*objectRes).GetValue<std::map<size_t, Resource *>>());
+                    size_t count;
+                    lwm2m_data_t *subData;
+
+                    if ((*dataArrayP)[i].type == LWM2M_TYPE_MULTIPLE_RESOURCE)
+                    {
+                        count = (*dataArrayP)->value.asChildren.count;
+                        subData = (*dataArrayP)->value.asChildren.array;
+                    }
+                    else
+                    {
+                        count = resourcesInstList->size();
+                        subData = lwm2m_data_new(count);
+                        size_t idx = 0;
+                        for (auto pair : (*resourcesInstList)){
+                            subData[idx].id = pair.first;
+                            idx++;
+                        }
+                        lwm2m_data_encode_instances(subData, count, (*dataArrayP) + i);
+                    }
+                    Resource *resourceInstance;
+                    for (size_t idx = 0; idx < count; ++idx)
+                    {
+                        std::cout << "Sub id is " << subData[idx].id << std::endl;
+                        auto resourceInstIt = resourcesInstList->find(subData[idx].id);
+                        resourceInstance = (*resourceInstIt).second;
+                        if ((*resourceInstance).Type() == typeid(int))
+                            lwm2m_data_encode_int(*((*resourceInstance).Read<int>()), subData + idx);
+                        else if ((*resourceInstance).Type() == typeid(bool))
+                            lwm2m_data_encode_bool(*((*resourceInstance).Read<bool>()), subData + idx);
+                        else if ((*resourceInstance).Type() == typeid(float))
+                            lwm2m_data_encode_float(*((*resourceInstance).Read<float>()), subData + idx);
+                        else if ((*resourceInstance).Type() == typeid(double))
+                            lwm2m_data_encode_float(*((*resourceInstance).Read<double>()), subData + idx);
+                        else if ((*resourceInstance).Type() == typeid(std::string))
+                            lwm2m_data_encode_string((*((*resourceInstance).Read<std::string>())).c_str(), subData + idx);
+                    }
+                }
                 else
                     result = COAP_404_NOT_FOUND;
             }
         }
         ++i;
     } while (i < *numDataP && result == COAP_205_CONTENT);
-
+    std::cout << "Result read is " << result << std::endl;
     return result;
 }
 
@@ -223,56 +265,103 @@ uint8_t NodeObject::_objectWrite(lwm2m_context_t *contextP,
     i = 0;
     do
     {
-        /* No multiple instance resources */
-        if (dataArray[i].type == LWM2M_TYPE_MULTIPLE_RESOURCE)
+        auto resourceIt = _resources.find(dataArray[i].id);
+        if (resourceIt == _resources.end())
         {
             result = COAP_404_NOT_FOUND;
         }
         else
         {
-            auto resourceIt = _resources.find(dataArray[i].id);
-            if (resourceIt == _resources.end())
+            Resource *objectRes = (*resourceIt).second;
+
+            if ((*objectRes).Type() == typeid(int))
             {
-                result = COAP_404_NOT_FOUND;
+                int64_t valI;
+                lwm2m_data_decode_int(dataArray + i, &valI);
+                result = ((*objectRes).Write<int>((int)valI) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+            }
+            else if ((*objectRes).Type() == typeid(bool))
+            {
+                bool valB;
+                lwm2m_data_decode_bool(dataArray + i, &valB);
+                result = ((*objectRes).Write<bool>(valB) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+            }
+            else if ((*objectRes).Type() == typeid(float))
+            {
+                double valF;
+                lwm2m_data_decode_float(dataArray + i, &valF);
+                result = ((*objectRes).Write<float>((float)valF) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+            }
+            else if ((*objectRes).Type() == typeid(double))
+            {
+                double valD;
+                lwm2m_data_decode_float(dataArray + i, &valD);
+                result = ((*objectRes).Write<double>(valD) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+            }
+            else if ((*objectRes).Type() == typeid(std::string))
+            {
+                std::string stringValue = std::string((char *)(dataArray[i].value.asBuffer.buffer));
+                stringValue.resize(dataArray[i].value.asBuffer.length);
+                result = ((*objectRes).Write<std::string>(stringValue) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+            }
+            else if ((*objectRes).Type() == typeid(std::map<size_t, Resource *>))
+            {
+                size_t count = dataArray[i].value.asChildren.count;
+                lwm2m_data_t *subData = dataArray[i].value.asChildren.array;
+                std::cout << "Write children count is " << count << std::endl;
+                std::cout << "Id is " << dataArray[i].value.asChildren.array[0].id << std::endl;
+                std::map<size_t, Resource *> *resourcesInstList = ((*objectRes).GetValue<std::map<size_t, Resource *>>());
+                Resource *resourceInstance;
+                auto resourceInstIt = resourcesInstList->find(subData[0].id);
+                if (resourceInstIt != resourcesInstList->end())
+                    return COAP_405_METHOD_NOT_ALLOWED;
+                resourceInstIt = resourcesInstList->find(0);
+                if (resourceInstIt == resourcesInstList->end())
+                    return COAP_405_METHOD_NOT_ALLOWED;
+                resourceInstance = (*resourceInstIt).second;
+                for (size_t idx = 0; idx < count; ++idx)
+                {
+                    if ((*resourceInstance).Type() == typeid(int))
+                    {
+                        int64_t valI;
+                        lwm2m_data_decode_int(subData + idx, &valI);
+                        (*resourcesInstList)[subData[idx].id] = new Resource(*resourceInstance);
+                        result = (((*resourcesInstList)[subData[idx].id])->Write<int>(valI) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+                    }
+                    else if ((*resourceInstance).Type() == typeid(bool))
+                    {
+                        bool valB;
+                        lwm2m_data_decode_bool(subData + idx, &valB);
+                        (*resourcesInstList)[subData[idx].id] = new Resource(*resourceInstance);
+                        result = (((*resourcesInstList)[subData[idx].id])->Write<bool>(valB) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+                    }
+                    else if ((*resourceInstance).Type() == typeid(float))
+                    {
+                        double valF;
+                        lwm2m_data_decode_float(subData + idx, &valF);
+                        (*resourcesInstList)[subData[idx].id] = new Resource(*resourceInstance);
+                        result = (((*resourcesInstList)[subData[idx].id])->Write<float>(valF) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+                    }
+                    else if ((*resourceInstance).Type() == typeid(double))
+                    {
+                        double valD;
+                        lwm2m_data_decode_float(subData + idx, &valD);
+                        (*resourcesInstList)[subData[idx].id] = new Resource(*resourceInstance);
+                        result = (((*resourcesInstList)[subData[idx].id])->Write<double>(valD) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+                    }
+                    else if ((*resourceInstance).Type() == typeid(std::string))
+                    {
+                        std::string stringValue = std::string((char *)(subData[idx].value.asBuffer.buffer));
+                        stringValue.resize(subData[idx].value.asBuffer.length);
+                        (*resourcesInstList)[subData[idx].id] = new Resource(*resourceInstance);
+                        result = (((*resourcesInstList)[subData[idx].id])->Write<std::string>(stringValue) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
+                    }
+                }
             }
             else
-            {
-                Resource *objectRes = (*resourceIt).second;
-
-                if ((*objectRes).Type() == typeid(int))
-                {
-                    int64_t valI;
-                    lwm2m_data_decode_int(dataArray + i, &valI);
-                    result = ((*objectRes).Write<int>((int)valI) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
-                }
-                else if ((*objectRes).Type() == typeid(bool))
-                {
-                    bool valB;
-                    lwm2m_data_decode_bool(dataArray + i, &valB);
-                    result = ((*objectRes).Write<bool>(valB) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
-                }
-                else if ((*objectRes).Type() == typeid(float))
-                {
-                    double valF;
-                    lwm2m_data_decode_float(dataArray + i, &valF);
-                    result = ((*objectRes).Write<float>((float)valF) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
-                }
-                else if ((*objectRes).Type() == typeid(double))
-                {
-                    double valD;
-                    lwm2m_data_decode_float(dataArray + i, &valD);
-                    result = ((*objectRes).Write<double>(valD) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
-                }
-                else if ((*objectRes).Type() == typeid(std::string))
-                {
-                    std::string stringValue = std::string((char *)(dataArray[i].value.asBuffer.buffer));
-                    stringValue.resize(dataArray[i].value.asBuffer.length);
-                    result = ((*objectRes).Write<std::string>(stringValue) == RES_SUCCESS ? COAP_204_CHANGED : COAP_404_NOT_FOUND);
-                }
-                else
-                    result = COAP_404_NOT_FOUND;
-            }
+                result = COAP_404_NOT_FOUND;
         }
+
         ++i;
     } while (i < numData && result == COAP_204_CHANGED);
 
@@ -339,13 +428,16 @@ uint8_t NodeObject::objectDeleteStatic(lwm2m_context_t *contextP,
                                        uint16_t instanceId,
                                        lwm2m_object_t *objectP)
 {
-    if(instanceId == 0){
+    if (instanceId == 0)
+    {
         return COAP_405_METHOD_NOT_ALLOWED;
     }
 
     NodeObject *instance;
-    for(ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next){
-        if(objectInstance->instanceId == instanceId){
+    for (ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next)
+    {
+        if (objectInstance->instanceId == instanceId)
+        {
             instance = static_cast<NodeObject *>(objectInstance->objectInstance);
             break;
         }
@@ -362,8 +454,10 @@ uint8_t NodeObject::objectDiscoverStatic(lwm2m_context_t *contextP,
                                          lwm2m_object_t *objectP)
 {
     NodeObject *instance;
-    for(ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next){
-        if(objectInstance->instanceId == instanceId){
+    for (ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next)
+    {
+        if (objectInstance->instanceId == instanceId)
+        {
             instance = static_cast<NodeObject *>(objectInstance->objectInstance);
             break;
         }
@@ -378,14 +472,19 @@ uint8_t NodeObject::objectReadStatic(lwm2m_context_t *contextP,
                                      lwm2m_object_t *objectP)
 {
     NodeObject *instance;
-    for(ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next){
-        if(objectInstance->instanceId == instanceId){
+    for (ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next)
+    {
+        if (objectInstance->instanceId == instanceId)
+        {
             std::cout << "Oject instance is " << instanceId << std::endl;
             instance = static_cast<NodeObject *>(objectInstance->objectInstance);
             break;
         }
     }
-    return instance->_objectRead(contextP, instanceId, numDataP, dataArrayP, objectP);
+
+    uint8_t result = instance->_objectRead(contextP, instanceId, numDataP, dataArrayP, objectP);
+    std::cout << "Read static result is " << result << std::endl;
+    return result;
 }
 
 uint8_t NodeObject::objectWriteStatic(lwm2m_context_t *contextP,
@@ -396,8 +495,10 @@ uint8_t NodeObject::objectWriteStatic(lwm2m_context_t *contextP,
                                       lwm2m_write_type_t writeType)
 {
     NodeObject *instance;
-    for(ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next){
-        if(objectInstance->instanceId == instanceId){
+    for (ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next)
+    {
+        if (objectInstance->instanceId == instanceId)
+        {
             instance = static_cast<NodeObject *>(objectInstance->objectInstance);
             break;
         }
@@ -413,8 +514,10 @@ uint8_t NodeObject::objectExecStatic(lwm2m_context_t *contextP,
                                      lwm2m_object_t *objectP)
 {
     NodeObject *instance;
-    for(ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next){
-        if(objectInstance->instanceId == instanceId){
+    for (ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next)
+    {
+        if (objectInstance->instanceId == instanceId)
+        {
             instance = static_cast<NodeObject *>(objectInstance->objectInstance);
             break;
         }

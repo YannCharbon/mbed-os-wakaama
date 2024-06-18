@@ -179,7 +179,7 @@ int NodeClient::StartClient()
 
     clientStarted = true;
 
-    lwm2m_object_t **objArray = new lwm2m_object_t*[_objects->size()];
+    lwm2m_object_t **objArray = new lwm2m_object_t*[_objects->size()+1];
 
     memset(&data, 0, sizeof(client_data_t));
     data.addressFamily = ADDRESS_IPV6;
@@ -272,7 +272,7 @@ int NodeClient::StartClient()
     data.connLayer = connectionlayer_create(lwm2mH);
 
     printf("lwm2m_configure\n");
-    result = lwm2m_configure(lwm2mH, CLIENT_ENDPOINT_NAME, NULL, NULL, _objects->size(), objArray);
+    result = lwm2m_configure(lwm2mH, CLIENT_ENDPOINT_NAME, NULL, NULL, _objects->size()+1, objArray);
     if (result != 0)
     {
         fprintf(stderr, "lwm2m_configure() failed: 0x%X\r\n", result);
