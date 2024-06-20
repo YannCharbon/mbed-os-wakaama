@@ -1,3 +1,12 @@
+/**
+ *  @file resource_impl.h
+ *  @brief This header file contain the definition of resource non template methods.
+ *
+ *  @author Bastien Pillonel
+ *
+ *  @date 6/20/2024
+ */
+
 #ifndef RESOURCE_IMPL_H
 #define RESOURCE_IMPL_H
 
@@ -7,9 +16,13 @@ Resource::~Resource()
 {
     if (!_value)
         return;
+    
+    // Clean ResCallback instance
     delete _actionsOnWrite;
     delete _actionsOnRead;
     delete _actionsOnExec;
+
+    // Clean value object and head structure
     Head *head = this->_head();
     head->~Head();
     free(head);

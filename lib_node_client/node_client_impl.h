@@ -26,7 +26,7 @@ int NodeClient::InitNetwork()
     printf("IP address: %s\n", a.get_ip_address() ? a.get_ip_address() : "None");
 
     NodeClient::_printInterfaceAddr(1);
-    
+
     return ret;
 }
 
@@ -171,15 +171,15 @@ void NodeClient::_printstate(lwm2m_context_t *lwm2mH)
 }
 
 int NodeClient::StartClient()
-{    
+{
     static bool clientStarted = false;
 
-    if(clientStarted == true)
+    if (clientStarted == true)
         return -1;
 
     clientStarted = true;
 
-    lwm2m_object_t **objArray = new lwm2m_object_t*[_objects->size()+1];
+    lwm2m_object_t **objArray = new lwm2m_object_t *[_objects->size() + 1];
 
     memset(&data, 0, sizeof(client_data_t));
     data.addressFamily = ADDRESS_IPV6;
@@ -246,14 +246,26 @@ int NodeClient::StartClient()
 #else
     sprintf(serverUri, "coap://[%s]:%s", M2M_SERVER_URL, SERVER_PORT);
 #endif
+<<<<<<< Updated upstream
+=======
+#endif
+
+#ifdef CONNECT_TO_THINGSBOARD
+#ifdef USE_DTLS
+    sprintf(serverUri, "coap://[%s]:%s", THINGSBOARD_SERVER_URL, THINGSBOARD_DTLS_SERVER_PORT);
+#else
+    sprintf(serverUri, "coap://[%s]:%s", THINGSBOARD_SERVER_URL, THINGSBOARD_SERVER_PORT);
+#endif
+#endif
+>>>>>>> Stashed changes
 
     objArray[0] = get_security_object(serverId, serverUri, pskId, pskBuffer, pskLen, false);
     data.securityObjP = objArray[0];
 
     for (size_t i = 0; i < _objects->size(); ++i)
     {
-        objArray[i+1] = _objects->at(i)->Get();
-        if (!objArray[i+1])
+        objArray[i + 1] = _objects->at(i)->Get();
+        if (!objArray[i + 1])
         {
             fprintf(stderr, "Failed to create object %lu\r\n", i);
             return -1;
@@ -272,7 +284,7 @@ int NodeClient::StartClient()
     data.connLayer = connectionlayer_create(lwm2mH);
 
     printf("lwm2m_configure\n");
-    result = lwm2m_configure(lwm2mH, CLIENT_ENDPOINT_NAME, NULL, NULL, _objects->size()+1, objArray);
+    result = lwm2m_configure(lwm2mH, CLIENT_ENDPOINT_NAME, NULL, NULL, _objects->size() + 1, objArray);
     if (result != 0)
     {
         fprintf(stderr, "lwm2m_configure() failed: 0x%X\r\n", result);
@@ -337,8 +349,10 @@ void NodeClient::_lwm2mHandleIncomingSocketDataCppWrap(ns_address_t *addr, uint8
     lwm2mMainThread.flags_set(0x1);
 }
 
-NodeClient::~NodeClient(){
-    for(NodeObject *object : *_objects){
+NodeClient::~NodeClient()
+{
+    for (NodeObject *object : *_objects)
+    {
         delete object;
     }
 }
