@@ -1,3 +1,33 @@
+/*******************************************************************************
+ *
+ * Copyright (c) 2013, 2014 Intel Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v2.0
+ * and Eclipse Distribution License v1.0 which accompany this distribution.
+ *
+ * The Eclipse Public License is available at
+ *    http://www.eclipse.org/legal/epl-v20.html
+ * The Eclipse Distribution License is available at
+ *    http://www.eclipse.org/org/documents/edl-v10.php.
+ *
+ * Contributors:
+ *    David Navarro, Intel Corporation - initial API and implementation
+ *    Bosch Software Innovations GmbH - Please refer to git log
+ *    Pascal Rieux - Please refer to git log
+ *    Ville Skyttä - Please refer to git log
+ *    Scott Bertin, AMETEK, Inc. - Please refer to git log
+ *
+ *******************************************************************************/
+
+/**
+ *  @file node_client_impl.h
+ *  @brief This header file contain the definition of the client class methods.
+ *
+ *  @author Bastien Pillonel
+ *
+ *  @date 6/21/2024
+ */
+
 #ifndef NODE_CLIENT_IMPL_H
 #define NODE_CLIENT_IMPL_H
 
@@ -7,7 +37,7 @@ int NodeClient::InitNetwork()
 {
     int ret = 0;
 
-    // try to connect and get ip via DHCP.
+    // Try to connect and get ip via DHCP.
     printf("=====================\n");
     printf("obtaining ip address...\n");
 
@@ -38,6 +68,7 @@ void NodeClient::_printInterfaceAddr(int id)
     int address_count = 0;
     char buf[128];
 
+    // Get address of interface
     int ret = arm_net_address_list_get(id, 128, address_buf, &address_count);
 
     if (ret == 0)
@@ -172,21 +203,19 @@ void NodeClient::_printstate(lwm2m_context_t *lwm2mH)
 
 int NodeClient::StartClient()
 {
+    // Ensure only one client instance is started 
     static bool clientStarted = false;
-
     if (clientStarted == true)
         return -1;
-
     clientStarted = true;
 
     lwm2m_object_t **objArray = new lwm2m_object_t *[_objects->size() + 1];
-
     memset(&data, 0, sizeof(client_data_t));
     data.addressFamily = ADDRESS_IPV6;
-
     int result;
-
+ 
 #ifdef USE_DTLS
+    // Configure psk id and key when DTLS is requested
     char *pskId = CLIENT_IDENTITY;
     char *psk = CLIENT_KEYSTR;
 
@@ -208,6 +237,7 @@ int NodeClient::StartClient()
     }
 
 #ifdef USE_DTLS
+    // Pre-Shared-Key configuration
     if (psk != NULL)
     {
         pskLen = strlen(psk) / 2;
@@ -239,6 +269,7 @@ int NodeClient::StartClient()
     }
 #endif
 
+    // Configuring server URI
     char serverUri[50];
     int serverId = 123;
 #ifdef USE_DTLS
@@ -246,22 +277,11 @@ int NodeClient::StartClient()
 #else
     sprintf(serverUri, "coap://[%s]:%s", M2M_SERVER_URL, SERVER_PORT);
 #endif
-<<<<<<< Updated upstream
-=======
-#endif
-
-#ifdef CONNECT_TO_THINGSBOARD
-#ifdef USE_DTLS
-    sprintf(serverUri, "coap://[%s]:%s", THINGSBOARD_SERVER_URL, THINGSBOARD_DTLS_SERVER_PORT);
-#else
-    sprintf(serverUri, "coap://[%s]:%s", THINGSBOARD_SERVER_URL, THINGSBOARD_SERVER_PORT);
-#endif
-#endif
->>>>>>> Stashed changes
-
+    // Get object security from object_security.c file 
     objArray[0] = get_security_object(serverId, serverUri, pskId, pskBuffer, pskLen, false);
     data.securityObjP = objArray[0];
 
+    // Get object from NodeObject instance stored in the client
     for (size_t i = 0; i < _objects->size(); ++i)
     {
         objArray[i + 1] = _objects->at(i)->Get();
@@ -272,6 +292,7 @@ int NodeClient::StartClient()
         }
     }
 
+    // Init connection context structure
     printf("lwm2m_init\n");
     lwm2mH = lwm2m_init(&data);
     if (NULL == lwm2mH)
@@ -339,9 +360,9 @@ void NodeClient::_lwm2mHandleIncomingSocketDataCppWrap(ns_address_t *addr, uint8
     printf("New packet arrived !\n");
     if (connectionlayer_handle_packet(data.connLayer, addr, buf, len) == -1)
     {
-        /*
-         * This packet comes from an unknown peer
-         */
+        
+        // This packet comes from an unknown peer
+        
         fprintf(stderr, "received bytes ignored!\r\n");
     }
 
@@ -367,6 +388,13 @@ extern "C" void lwm2m_handle_incoming_socket_data(ns_address_t *addr, uint8_t *b
     NodeClient::_lwm2mHandleIncomingSocketDataCppWrap(addr, buf, len);
 }
 
+/**
+ * @brief External definition of lwm2m_connect_server
+ * 
+ * @param secObjInstID id of security object
+ * @param userData parameter to lwm2m_init()
+ * @return void* connection_t structure about the connection established
+ */
 void *lwm2m_connect_server(uint16_t secObjInstID,
                            void *userData)
 {
@@ -385,7 +413,7 @@ void *lwm2m_connect_server(uint16_t secObjInstID,
 
     printf("Connecting to %s\r\n", uri);
 
-    // parse uri in the form "coaps://[host]:[port]"
+    // Parse uri in the form "coaps://[host]:[port]"
     if (0 == strncmp(uri, "coaps://", strlen("coaps://")))
     {
         host = uri + strlen("coaps://");
@@ -417,9 +445,11 @@ void *lwm2m_connect_server(uint16_t secObjInstID,
     port++;
 
 #if defined(USE_DTLS)
+    // Create connection with dtls use
     newConnP = (connection_t *)dtlsconnection_create(dataP->connLayer, secObjInstID, dataP->sock, host, port,
                                                      dataP->addressFamily);
 #else
+    // Create connection without dtls
     newConnP = connection_create(dataP->connLayer, dataP->sock, host, port, dataP->addressFamily);
 #endif
 
@@ -437,6 +467,12 @@ exit:
     return (void *)newConnP;
 }
 
+/**
+ * @brief Close a session created by lwm2m_connect_server()
+ * 
+ * @param sessionH session handle identifying the peer 
+ * @param userData parameter to lwm2m_init()
+ */
 void lwm2m_close_connection(void *sessionH,
                             void *userData)
 {
