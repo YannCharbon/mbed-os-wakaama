@@ -46,12 +46,14 @@
 #define MBEDTLS_CTR_DRBG_C
 #define MBEDTLS_ENTROPY_C
 #define MBEDTLS_MD_C
+#define MBEDTLS_GCM_C
 //#define MBEDTLS_NET_C
 /* The library does not currently support enabling SHA-224 without SHA-256.
  * A future version of the library will have this option disabled
  * by default. */
 #define MBEDTLS_SHA224_C
 #define MBEDTLS_SHA256_C
+#define MBEDTLS_SHA512_C
 #define MBEDTLS_SSL_CLI_C
 //#define MBEDTLS_SSL_SRV_C
 #define MBEDTLS_SSL_TLS_C
@@ -76,13 +78,13 @@
  * is the "platform_entropy_poll" source, but you may want to add other ones
  * Minimum is 2 for the entropy test suite.
  */
-#define MBEDTLS_ENTROPY_MAX_SOURCES 2
+#define MBEDTLS_ENTROPY_MAX_SOURCES 12
 
 /*
  * Use only CCM_8 ciphersuites, and
  * save ROM and a few bytes of RAM by specifying our own ciphersuite list
  */
-#define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_PSK_WITH_AES_256_CCM_8, MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8
+#define MBEDTLS_SSL_CIPHERSUITES MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256, MBEDTLS_TLS_PSK_WITH_AES_256_GCM_SHA384, MBEDTLS_TLS_PSK_WITH_AES_256_CCM_8, MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8, MBEDTLS_TLS_PSK_WITH_AES_256_CCM, MBEDTLS_TLS_PSK_WITH_AES_128_CCM
 
 /*
  * Save RAM at the expense of interoperability: do this only if you control

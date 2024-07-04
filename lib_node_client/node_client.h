@@ -32,6 +32,7 @@ extern "C"
 #define SERVER_PORT "5683"
 #define CLIENT_LOCAL_PORT 0 // Let OS decide
 
+// Connect to thingsboard server
 #define THINGSBOARD_SERVER_URL "2a05:d018:1db1:3d01:c117:6d9a:bd23:5c50"
 #define THINGSBOARD_SERVER_PORT "6683"
 #define THINGSBOARD_DTLS_SERVER_PORT "6684"

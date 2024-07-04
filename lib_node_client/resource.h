@@ -56,7 +56,12 @@ enum class Units
     VAR,
     VAR_HOUR,
     LX,
-    KILOVAR_HOUR
+    KILOVAR_HOUR,
+    LAT,
+    LON,
+    METER,
+    METER_PER_SECOND,
+    DEGREE
 };
 
 /**

@@ -21,7 +21,7 @@
 #define PRV_OFFSET_MAXLEN 7 //+HH:MM\0 at max
 #define PRV_TLV_BUFFER_SIZE 128
 #define PRV_SHORT_SERVER_ID 123
-#define PRV_LIFETIME 600
+#define PRV_LIFETIME 60
 #define PRV_STORING false
 #define PRV_BINDING "U"
 #define PRV_SERVER_URI "coap://[2a01:111:f100:9001::1761:93fa]:5684"
@@ -47,6 +47,9 @@
 #define ELECTRICAL_MEASUREMENT_OBJECT_ID 3418
 #define PHOTOCELL_OBJECT_ID 3419
 #define LED_COLOR_OBJECT_ID 3420
+#define LOCATION_MEASUREMENT_OBJECT_ID 3430
+
+size_t pwm;
 
 std::vector<NodeObject *> *initializeObjects()
 {
@@ -234,6 +237,11 @@ std::vector<NodeObject *> *initializeObjects()
     Resource *lightSourceActivePower = new Resource(0.0f, ResourceOp::RES_RD, "Light source active power", Units::WATT, 46);
     Resource *lightSourceActiveEnergy = new Resource(0.0f, ResourceOp::RES_RD, "Light source active energy", Units::KILOWATT_HOUR, 47);
 
+    // Pwm command for led
+    command->BindOnWrite<int>([](int val)
+                              { std::cout << "Command write get : " << val << std::endl; 
+                                pwm = val; });
+
     controlGearThermalDeratingCounterReset->BindOnExec<int>([](int a)
                                                             { std::cout << "Control gear thermal derating counter reset value : " << a << std::endl; });
 
@@ -410,7 +418,47 @@ std::vector<NodeObject *> *initializeObjects()
 
     NodeObject *ledColorObject = new NodeObject(LED_COLOR_OBJECT_ID, 0, ledColorResource);
 
-    return new std::vector<NodeObject *>({serverObject, deviceObject, deviceExtensionObject, batteryObject, lpwanObject, dataBridgeObject, timeSynchronisationObject, outdoorLampControllerObject, luminaireAssetObject, digitalInputObject, digitalOutputObject, analogInputObject, sensorObject, genericActuatorObject, electricalMeasurementObject, photocellObject, ledColorObject});
+    // ================================== OBJECT GLOBAL NAVIGATION SATELLITE SYSTEM ==================================
+    Resource *fixTimestamp = new Resource(0, ResourceOp::RES_RD, "Fix timestamp", Units::DATE, 0);
+    Resource *latitude = new Resource(46.778971723068416f, ResourceOp::RES_RD, "Latitude", Units::LAT, 1);
+    Resource *longitude = new Resource(6.6593466840656275f, ResourceOp::RES_RD, "Longitude", Units::LON, 2);
+    Resource *altitude = new Resource(0.0f, ResourceOp::RES_RD, "Altitude", Units::METER, 3);
+    Resource *speed = new Resource(0.0f, ResourceOp::RES_RD, "Speed", Units::METER_PER_SECOND, 4);
+    Resource *heading = new Resource(0.0f, ResourceOp::RES_RD, "Heading", Units::DEGREE, 5);
+    Resource *radius = new Resource(0.0f, ResourceOp::RES_RD, "Radius", Units::METER, 6);
+    Resource *hdop = new Resource(0.0f, ResourceOp::RES_RD, "HDOP", Units::NA, 7);
+    Resource *vdop = new Resource(0.0f, ResourceOp::RES_RD, "VDOP", Units::NA, 8);
+    Resource *estimatedHorizontalAccuracy = new Resource(0.0f, ResourceOp::RES_RD, "Estimated horizontal accuracy", Units::METER, 9);
+    Resource *estimatedVerticalAccuracy = new Resource(0.0f, ResourceOp::RES_RD, "Estimated vertical accuracy", Units::METER, 10);
+    Resource *estimatedSpeedAccuracy = new Resource(0.0f, ResourceOp::RES_RD, "Estimated speed accuracy", Units::METER_PER_SECOND, 11);
+    Resource *estimatedHeadingAccuracy = new Resource(0.0f, ResourceOp::RES_RD, "Estimated heading accuracy", Units::DEGREE, 12);
+    Resource *fixType = new Resource(0, ResourceOp::RES_RD, "Fix type", Units::NA, 13);
+    Resource *fixDimension = new Resource(0, ResourceOp::RES_RD, "Fix dimension", Units::NA, 14);
+    Resource *usedSatellites = new Resource(0, ResourceOp::RES_RD, "Used satellites", Units::NA, 15);
+    Resource *visibleSatellites = new Resource(0, ResourceOp::RES_RD, "Visible satellites", Units::NA, 16);
+    Resource *satelliteIdentifier = new Resource(std::string(""), ResourceOp::RES_RD, "Satellite identifier", Units::NA, 17);
+    Resource *satelliteElevation = new Resource(0.0f, ResourceOp::RES_RD, "Satellite elevation", Units::DEGREE, 18);
+    Resource *satelliteAzimuth = new Resource(0.0f, ResourceOp::RES_RD, "Satellite azimuth", Units::DEGREE, 19);
+    Resource *almanac = new Resource(false, ResourceOp::RES_RD, "Almanac", Units::NA, 20);
+    Resource *ephemeris = new Resource(false, ResourceOp::RES_RD, "Ephemeris", Units::NA, 21);
+    Resource *locationSignalToNoiseRatio = new Resource(0.0f, ResourceOp::RES_RD, "Signal-to-noise ratio", Units::NA, 22);
+    Resource *gnss = new Resource(0, ResourceOp::RES_RD, "GNSS", Units::NA, 23);
+    Resource *hardwareRTC = new Resource(0, ResourceOp::RES_RD, "Hardware RTC", Units::DATE, 24);
+    Resource *assistedGPS = new Resource(false, ResourceOp::RES_RDWR, "Assisted GPS", Units::NA, 25);
+    Resource *powerCommand = new Resource(false, ResourceOp::RES_RDWR, "Power command", Units::NA, 26);
+    Resource *pdop = new Resource(0.0f, ResourceOp::RES_RD, "PDOP", Units::NA, 27);
+    Resource *status = new Resource(std::string(""), ResourceOp::RES_RD, "Status", Units::NA, 28);
+
+    std::vector<Resource *> locationMeasurementResources = {
+        fixTimestamp, latitude, longitude, altitude, speed, heading, radius,
+        hdop, vdop, estimatedHorizontalAccuracy, estimatedVerticalAccuracy, estimatedSpeedAccuracy,
+        estimatedHeadingAccuracy, fixType, fixDimension, usedSatellites, visibleSatellites,
+        satelliteIdentifier, satelliteElevation, satelliteAzimuth, almanac, ephemeris,
+        locationSignalToNoiseRatio, gnss, hardwareRTC, assistedGPS, powerCommand, pdop, status};
+
+    NodeObject *locationMeasurementObject = new NodeObject(LOCATION_MEASUREMENT_OBJECT_ID, 0, locationMeasurementResources);
+
+    return new std::vector<NodeObject *>({serverObject, deviceObject, deviceExtensionObject, batteryObject, lpwanObject, dataBridgeObject, timeSynchronisationObject, outdoorLampControllerObject, luminaireAssetObject, digitalInputObject, digitalOutputObject, analogInputObject, sensorObject, genericActuatorObject, electricalMeasurementObject, photocellObject, ledColorObject, locationMeasurementObject});
 }
 
 #endif

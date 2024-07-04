@@ -13,9 +13,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "socket_api.h"
 #include "ip6string.h"
 #include "mbed_trace.h"
+#include "socket_api.h"
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
@@ -89,13 +89,14 @@ static int dtlsconnection_mbedtls_send(void *ctx, uint8_t const *buffer, size_t 
     int nbSent;
     size_t offset;
     offset = 0;
-    //while (offset != length) {
-    //    nbSent = sendto(connP->conn.sock, buffer + offset, length - offset, 0, (struct sockaddr *)&(connP->conn.addr),
-    //                    connP->conn.addrLen);
-    //    if (nbSent == -1)
-    //        return -1;
-    //    offset += nbSent;
-    //}
+    // while (offset != length) {
+    //     nbSent = sendto(connP->conn.sock, buffer + offset, length - offset, 0, (struct sockaddr
+    //     *)&(connP->conn.addr),
+    //                     connP->conn.addrLen);
+    //     if (nbSent == -1)
+    //         return -1;
+    //     offset += nbSent;
+    // }
     char a[40];
     ip6tos(connP->conn.addr.address, a);
     int ret = socket_sendto(connP->conn.sock, &connP->conn.addr, buffer + offset, length - offset);
@@ -133,22 +134,26 @@ connection_t *dtlsconnection_create(lwm2m_connection_layer_t *connLayerP, uint16
 
     int ret = security_get_psk_identity(connLayerP->ctx, securityInstance, &identity, &identityLen);
     if (ret <= 0) {
+        printf("Crash 11\r\n");
         return NULL;
     }
     ret = security_get_psk(connLayerP->ctx, securityInstance, &psk, &pskLen);
     if (ret <= 0) {
+        printf("Crash 12\r\n");
         lwm2m_free(identity);
         return NULL;
     }
 
     dtlsConn = (dtlsconnection_t *)lwm2m_malloc(sizeof(dtlsconnection_t));
     if (dtlsConn == NULL) {
+        printf("Crash 13\r\n");
         lwm2m_free(identity);
         lwm2m_free(psk);
         return NULL;
     }
     memset(dtlsConn, 0, sizeof(dtlsconnection_t));
     if (connection_create_inplace(&dtlsConn->conn, sock, host, port, addressFamily) <= 0) {
+        printf("Crash 14\r\n");
         lwm2m_free(identity);
         lwm2m_free(psk);
         lwm2m_free(dtlsConn);
@@ -166,6 +171,7 @@ connection_t *dtlsconnection_create(lwm2m_connection_layer_t *connLayerP, uint16
     mbedtls_entropy_init(&dtlsConn->entropy);
     if ((ret = mbedtls_ctr_drbg_seed(&dtlsConn->ctr_drbg, mbedtls_entropy_func, &dtlsConn->entropy,
                                      (const unsigned char *)identity, identityLen)) != 0) {
+        printf("Crash 15\r\n");
         dtlsconnection_deinit(dtlsConn);
         lwm2m_free(identity);
         lwm2m_free(psk);
@@ -175,17 +181,19 @@ connection_t *dtlsconnection_create(lwm2m_connection_layer_t *connLayerP, uint16
 
     if ((ret = mbedtls_ssl_config_defaults(&dtlsConn->conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_DATAGRAM,
                                            MBEDTLS_SSL_PRESET_DEFAULT)) != 0) {
+        printf("Crash 16\r\n");
         dtlsconnection_deinit(dtlsConn);
         lwm2m_free(identity);
         lwm2m_free(psk);
         lwm2m_free(dtlsConn);
         return NULL;
     }
-    static int ciphersuites[] = {MBEDTLS_TLS_PSK_WITH_AES_128_CCM, 0};
+    static int ciphersuites[] = {MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256, MBEDTLS_TLS_PSK_WITH_AES_256_GCM_SHA384, MBEDTLS_TLS_PSK_WITH_AES_256_CCM_8, MBEDTLS_TLS_PSK_WITH_AES_128_CCM_8, MBEDTLS_TLS_PSK_WITH_AES_256_CCM, MBEDTLS_TLS_PSK_WITH_AES_128_CCM, 0};
 
     mbedtls_ssl_conf_ciphersuites(&dtlsConn->conf, ciphersuites);
 
     if ((ret = mbedtls_ssl_conf_psk(&dtlsConn->conf, (uint8_t *)psk, pskLen, (uint8_t *)identity, identityLen)) != 0) {
+        printf("Crash 17\r\n");
         dtlsconnection_deinit(dtlsConn);
         lwm2m_free(identity);
         lwm2m_free(psk);
@@ -201,6 +209,7 @@ connection_t *dtlsconnection_create(lwm2m_connection_layer_t *connLayerP, uint16
     mbedtls_ssl_set_timer_cb(&dtlsConn->ssl, &dtlsConn->timer, mbedtls_timing_set_delay, mbedtls_timing_get_delay);
 
     if ((ret = mbedtls_ssl_setup(&dtlsConn->ssl, &dtlsConn->conf)) != 0) {
+        printf("Crash 18\r\n");
         dtlsconnection_deinit(dtlsConn);
         lwm2m_free(dtlsConn);
         return NULL;

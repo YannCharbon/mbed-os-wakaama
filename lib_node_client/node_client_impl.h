@@ -3,6 +3,9 @@
 
 #include "node_client.h"
 
+DigitalOut led(LED1);
+extern size_t pwm;
+
 int NodeClient::InitNetwork()
 {
     int ret = 0;
@@ -26,7 +29,7 @@ int NodeClient::InitNetwork()
     printf("IP address: %s\n", a.get_ip_address() ? a.get_ip_address() : "None");
 
     NodeClient::_printInterfaceAddr(1);
-    
+
     return ret;
 }
 
@@ -171,15 +174,15 @@ void NodeClient::_printstate(lwm2m_context_t *lwm2mH)
 }
 
 int NodeClient::StartClient()
-{    
+{
     static bool clientStarted = false;
 
-    if(clientStarted == true)
+    if (clientStarted == true)
         return -1;
 
     clientStarted = true;
 
-    lwm2m_object_t **objArray = new lwm2m_object_t*[_objects->size()+1];
+    lwm2m_object_t **objArray = new lwm2m_object_t *[_objects->size() + 1];
 
     memset(&data, 0, sizeof(client_data_t));
     data.addressFamily = ADDRESS_IPV6;
@@ -250,7 +253,11 @@ int NodeClient::StartClient()
 #endif
 
 #ifdef CONNECT_TO_THINGSBOARD
+#ifdef USE_DTLS
+    sprintf(serverUri, "coap://[%s]:%s", THINGSBOARD_SERVER_URL, THINGSBOARD_DTLS_SERVER_PORT);
+#else
     sprintf(serverUri, "coap://[%s]:%s", THINGSBOARD_SERVER_URL, THINGSBOARD_SERVER_PORT);
+#endif
 #endif
 
     objArray[0] = get_security_object(serverId, serverUri, pskId, pskBuffer, pskLen, false);
@@ -258,8 +265,8 @@ int NodeClient::StartClient()
 
     for (size_t i = 0; i < _objects->size(); ++i)
     {
-        objArray[i+1] = _objects->at(i)->Get();
-        if (!objArray[i+1])
+        objArray[i + 1] = _objects->at(i)->Get();
+        if (!objArray[i + 1])
         {
             fprintf(stderr, "Failed to create object %lu\r\n", i);
             return -1;
@@ -278,7 +285,7 @@ int NodeClient::StartClient()
     data.connLayer = connectionlayer_create(lwm2mH);
 
     printf("lwm2m_configure\n");
-    result = lwm2m_configure(lwm2mH, CLIENT_ENDPOINT_NAME, NULL, NULL, _objects->size()+1, objArray);
+    result = lwm2m_configure(lwm2mH, CLIENT_ENDPOINT_NAME, NULL, NULL, _objects->size() + 1, objArray);
     if (result != 0)
     {
         fprintf(stderr, "lwm2m_configure() failed: 0x%X\r\n", result);
@@ -291,9 +298,14 @@ int NodeClient::StartClient()
     int i = 0;
     while (1)
     {
-        ThisThread::sleep_for(1s);
-        // Test to update the resource device operating hours on device extension to see if server is able to update the red value
+        // ThisThread::sleep_for(1s);
+        //  Test to update the resource device operating hours on device extension to see if server is able to update the red value
         //((_objects->at(2))->GetResource(9))->SetValue<int>(i++);
+        // PWM test on led with thingsboard
+        led = 1;
+        ThisThread::sleep_for(pwm);
+        led = 0;
+        ThisThread::sleep_for(100 - pwm);
     }
 
     delete objArray;
@@ -331,6 +343,12 @@ void NodeClient::_lwm2mMainThreadTask()
 void NodeClient::_lwm2mHandleIncomingSocketDataCppWrap(ns_address_t *addr, uint8_t *buf, size_t len)
 {
     printf("New packet arrived !\n");
+    printf("Buffer : ");
+    for (size_t i = 0; i < len; ++i)
+    {
+        printf("%x ", buf[i]);
+    }
+    printf("\n");
     if (connectionlayer_handle_packet(data.connLayer, addr, buf, len) == -1)
     {
         /*
@@ -343,8 +361,10 @@ void NodeClient::_lwm2mHandleIncomingSocketDataCppWrap(ns_address_t *addr, uint8
     lwm2mMainThread.flags_set(0x1);
 }
 
-NodeClient::~NodeClient(){
-    for(NodeObject *object : *_objects){
+NodeClient::~NodeClient()
+{
+    for (NodeObject *object : *_objects)
+    {
         delete object;
     }
 }

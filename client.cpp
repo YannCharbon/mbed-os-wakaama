@@ -61,12 +61,13 @@
 
 */
 #if !MBED_TEST_MODE
+#define DEBUG 1
 
 #include "objects_definition.h"
 
 int main(int argc, char *argv[])
 {
-    ThisThread::sleep_for(1s);
+    //ThisThread::sleep_for(1s);
 
     std::vector<NodeObject *> *objects = initializeObjects();
 
