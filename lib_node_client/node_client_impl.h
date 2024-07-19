@@ -315,7 +315,7 @@ int NodeClient::StartClient()
 
     lwm2mMainThread.start(&NodeClient::_lwm2mMainThreadTask);
 
-    int i = 0;
+    //int i = 0;
     while (1)
     {
         ThisThread::sleep_for(1s);
@@ -355,7 +355,7 @@ void NodeClient::_lwm2mMainThreadTask()
     }
 }
 
-void NodeClient::_lwm2mHandleIncomingSocketDataCppWrap(ns_address_t *addr, uint8_t *buf, size_t len)
+void NodeClient::Lwm2mHandleIncomingSocketDataCppWrap(ns_address_t *addr, uint8_t *buf, size_t len)
 {
     printf("New packet arrived !\n");
     if (connectionlayer_handle_packet(data.connLayer, addr, buf, len) == -1)
@@ -385,7 +385,7 @@ void lwm2m_main_thread_timeout_timer_cb()
 
 extern "C" void lwm2m_handle_incoming_socket_data(ns_address_t *addr, uint8_t *buf, size_t len)
 {
-    NodeClient::_lwm2mHandleIncomingSocketDataCppWrap(addr, buf, len);
+    NodeClient::Lwm2mHandleIncomingSocketDataCppWrap(addr, buf, len);
 }
 
 /**

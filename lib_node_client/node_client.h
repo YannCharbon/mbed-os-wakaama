@@ -94,7 +94,7 @@ public:
      * @brief Construct a new Node Client object by default
      *
      */
-    NodeClient() : _objects({}) {}
+    NodeClient() {}
 
     /**
      * @brief Construct a new Node Client object by copy
@@ -145,7 +145,7 @@ public:
      * @param buf payload
      * @param len payload length
      */
-    static void _lwm2mHandleIncomingSocketDataCppWrap(ns_address_t *addr, uint8_t *buf, size_t len);
+    static void Lwm2mHandleIncomingSocketDataCppWrap(ns_address_t *addr, uint8_t *buf, size_t len);
 
 private:
     std::vector<NodeObject *> *_objects;

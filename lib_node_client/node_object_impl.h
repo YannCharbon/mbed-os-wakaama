@@ -479,7 +479,7 @@ uint8_t NodeObject::objectDeleteStatic(lwm2m_context_t *contextP,
     }
 
     // Find corresponding object instance from id
-    NodeObject *instance;
+    NodeObject *instance = nullptr;
     for (ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next)
     {
         if (objectInstance->instanceId == instanceId)
@@ -491,7 +491,8 @@ uint8_t NodeObject::objectDeleteStatic(lwm2m_context_t *contextP,
 
     // Call delete callback on founded instance, and free memory
     uint8_t result = instance->_objectDelete(contextP, instanceId, objectP);
-    delete instance;
+    if(instance)
+        delete instance;
     return result;
 }
 
@@ -502,7 +503,7 @@ uint8_t NodeObject::objectDiscoverStatic(lwm2m_context_t *contextP,
                                          lwm2m_object_t *objectP)
 {
     // Find object instance from id
-    NodeObject *instance;
+    NodeObject *instance = nullptr;
     for (ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next)
     {
         if (objectInstance->instanceId == instanceId)
@@ -523,7 +524,7 @@ uint8_t NodeObject::objectReadStatic(lwm2m_context_t *contextP,
                                      lwm2m_object_t *objectP)
 {
     // Find object instance from id
-    NodeObject *instance;
+    NodeObject *instance = nullptr;
     for (ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next)
     {
         if (objectInstance->instanceId == instanceId)
@@ -546,7 +547,7 @@ uint8_t NodeObject::objectWriteStatic(lwm2m_context_t *contextP,
                                       lwm2m_write_type_t writeType)
 {
     // Find object from id
-    NodeObject *instance;
+    NodeObject *instance = nullptr;
     for (ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next)
     {
         if (objectInstance->instanceId == instanceId)
@@ -568,7 +569,7 @@ uint8_t NodeObject::objectExecStatic(lwm2m_context_t *contextP,
                                      lwm2m_object_t *objectP)
 {
     // Find object from id
-    NodeObject *instance;
+    NodeObject *instance = nullptr;
     for (ObjectList *objectInstance = (ObjectList *)objectP->instanceList; objectInstance != nullptr; objectInstance = (ObjectList *)objectInstance->next)
     {
         if (objectInstance->instanceId == instanceId)
