@@ -101,21 +101,41 @@ public:
      * 
      * @param src 
      */
-    NodeClient(const NodeClient &src) : _objects(src._objects) {}
+    NodeClient(const NodeClient &src) : _objects(src._objects), _eth(src._eth), _url(src._url), _port(src._port), _clientKey(src._clientKey), _endpointName(src._endpointName), _clientIdentity(src._clientIdentity) {}
 
     /**
      * @brief Construct a new Node Client object by moving
      * 
      * @param src 
      */
-    NodeClient(NodeClient &&src) : _objects(std::move(src._objects)) {}
+    NodeClient(NodeClient &&src) : _objects(std::move(src._objects)), _eth(src._eth), _url(src._url), _port(src._port), _clientKey(src._clientKey), _endpointName(src._endpointName), _clientIdentity(src._clientIdentity) {
+        src._eth = nullptr;
+        src._url = nullptr;
+        src._port = nullptr;
+        src._clientKey = nullptr;
+        src._endpointName = nullptr;
+        src._clientIdentity = nullptr;
+    }
 
     /**
      * @brief Construct a new Node Client object by specific a vector of object stored in the client
      * 
      * @param objects respresents a list of objects on the client device.
      */
-    NodeClient(std::vector<NodeObject *> *objects) : _objects(objects) {}
+    NodeClient(std::vector<NodeObject *> *objects) : _objects(objects), _eth(), _url(""), _port(""), _clientKey(""), _endpointName(""), _clientIdentity("")  {}
+
+    /**
+     * @brief Construct a new Node Client object by specific a vector of object stored in the client, a network interface, the server URL and server port
+     * 
+     * @param objects respresents a list of objects on the client device.
+     * @param eth network interface for NodeClient
+     * @param url server url
+     * @param port server port
+     * @param clientKey psk client key
+     * @param endpointName name of client endpoint
+     * @param clientIdentity client identity for psk
+     */
+    NodeClient(std::vector<NodeObject *> *objects, NetworkInterface *eth, const char *url, const char *port, char *clientKey, char *endpointName, char *clientIdentity) : _objects(objects), _eth(eth), _url(url), _port(port), _clientKey(clientKey), _endpointName(endpointName), _clientIdentity(clientIdentity) {}
 
     /**
      * @brief Destroy the Node Client object
@@ -147,9 +167,63 @@ public:
      */
     static void Lwm2mHandleIncomingSocketDataCppWrap(ns_address_t *addr, uint8_t *buf, size_t len);
 
+    /**
+     * @brief Set the Objects attribute
+     * 
+     * @param objects vector of NodeObject avaliable on the client
+     */
+    void SetObjects(std::vector<NodeObject *> *objects);
+
+    /**
+     * @brief Set the Network Interface attribute
+     * 
+     * @param eth new network interface of NodeClient 
+     */
+    void SetNetworkInterface(NetworkInterface *eth);
+
+    /**
+     * @brief Set the Url object
+     * 
+     * @param url of the LwM2M server
+     */
+    void SetUrl(const char *url);
+
+    /**
+     * @brief Set the Port object
+     * 
+     * @param port of the LwM2M server
+     */
+    void SetPort(const char *port);
+
+    /**
+     * @brief Set the Client Key object
+     * 
+     * @param clientKey psk client key
+     */
+    void SetClientKey(char *clientKey);
+
+    /**
+     * @brief Set the Endpoint Name object
+     * 
+     * @param endpointName endpoint name of client
+     */
+    void SetEndpointName(char *endpointName);
+
+    /**
+     * @brief Set the Client Identity object
+     * 
+     * @param clientIdentity psk client identity
+     */
+    void SetClientIdentity(char *clientIdentity);
+
 private:
     std::vector<NodeObject *> *_objects;
     NetworkInterface *_eth;
+    const char *_url;
+    const char *_port;
+    char *_clientKey;
+    char *_endpointName;
+    char *_clientIdentity;
 
     /**
      * @brief Display interface addr infos

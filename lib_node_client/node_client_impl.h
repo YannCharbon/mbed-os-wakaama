@@ -216,8 +216,8 @@ int NodeClient::StartClient()
  
 #ifdef USE_DTLS
     // Configure psk id and key when DTLS is requested
-    char *pskId = CLIENT_IDENTITY;
-    char *psk = CLIENT_KEYSTR;
+    char *pskId = _clientIdentity;
+    char *psk = _clientKey;
 
     uint16_t pskLen = 0;
     char *pskBuffer = NULL;
@@ -272,11 +272,13 @@ int NodeClient::StartClient()
     // Configuring server URI
     char serverUri[50];
     int serverId = 123;
-#ifdef USE_DTLS
+
+    sprintf(serverUri, "coaps://[%s]:%s", _url, _port);
+/*#ifdef USE_DTLS
     sprintf(serverUri, "coaps://[%s]:%s", M2M_SERVER_URL, SERVER_DTLS_PORT);
 #else
     sprintf(serverUri, "coap://[%s]:%s", M2M_SERVER_URL, SERVER_PORT);
-#endif
+#endif*/
     // Get object security from object_security.c file 
     objArray[0] = get_security_object(serverId, serverUri, pskId, pskBuffer, pskLen, false);
     data.securityObjP = objArray[0];
@@ -305,7 +307,7 @@ int NodeClient::StartClient()
     data.connLayer = connectionlayer_create(lwm2mH);
 
     printf("lwm2m_configure\n");
-    result = lwm2m_configure(lwm2mH, CLIENT_ENDPOINT_NAME, NULL, NULL, _objects->size() + 1, objArray);
+    result = lwm2m_configure(lwm2mH, _endpointName, NULL, NULL, _objects->size() + 1, objArray);
     if (result != 0)
     {
         fprintf(stderr, "lwm2m_configure() failed: 0x%X\r\n", result);
@@ -376,6 +378,34 @@ NodeClient::~NodeClient()
     {
         delete object;
     }
+}
+
+void NodeClient::SetObjects(std::vector<NodeObject *> *objects){
+    _objects = objects;
+}
+
+void NodeClient::SetNetworkInterface(NetworkInterface *eth){
+    _eth = eth;
+}
+
+void NodeClient::SetUrl(const char *url){
+    _url = url;
+}
+
+void NodeClient::SetPort(const char *port){
+    _port = port;
+}
+
+void NodeClient::SetClientKey(char *clientKey){
+    _clientKey = clientKey;
+}
+
+void NodeClient::SetEndpointName(char *endpointName){
+    _endpointName = endpointName;
+}
+
+void NodeClient::SetClientIdentity(char *clientIdentity){
+    _clientIdentity = clientIdentity;
 }
 
 void lwm2m_main_thread_timeout_timer_cb()
