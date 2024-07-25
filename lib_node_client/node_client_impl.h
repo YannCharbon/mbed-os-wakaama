@@ -313,7 +313,7 @@ int NodeClient::StartClient()
         fprintf(stderr, "lwm2m_configure() failed: 0x%X\r\n", result);
         return -1;
     }
-    fprintf(stdout, "LWM2M Client \"%s\" started on port %d.\r\nUse Ctrl-C to exit.\r\n\n", CLIENT_ENDPOINT_NAME, CLIENT_LOCAL_PORT);
+    fprintf(stdout, "LWM2M Client \"%s\" started on port %d.\r\nUse Ctrl-C to exit.\r\n\n", _endpointName, CLIENT_LOCAL_PORT);
 
     lwm2mMainThread.start(&NodeClient::_lwm2mMainThreadTask);
 

@@ -64,13 +64,21 @@
 
 #include "objects_definition.h"
 
+// Connect to the Leshan test server as default: http://leshan.eclipse.org
+#define M2M_SERVER_URL "2a01:111:f100:9001::1761:93fa" // LESHAN
+#define CLIENT_ENDPOINT_NAME "mbedM2M"
+#define CLIENT_IDENTITY "mbedM2M"
+#define CLIENT_KEYSTR "65875A0C3D4646A99BFC4D5967EE7DB3"
+#define SERVER_DTLS_PORT "5684"
+#define SERVER_PORT "5683"
+
 int main(int argc, char *argv[])
 {
     ThisThread::sleep_for(1s);
 
     std::vector<NodeObject *> *objects = initializeObjects();
 
-    NodeClient client = {objects};
+    NodeClient client = {objects, nullptr, M2M_SERVER_URL, SERVER_DTLS_PORT, CLIENT_KEYSTR, CLIENT_ENDPOINT_NAME, CLIENT_IDENTITY};
 
     client.InitNetwork();
     client.StartClient();
