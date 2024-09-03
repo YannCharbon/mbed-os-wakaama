@@ -28,9 +28,6 @@
  *  @date 6/21/2024
  */
 
-#ifndef NODE_OBJECT_IMPL_H
-#define NODE_OBJECT_IMPL_H
-
 #include "node_object.h"
 
 uint8_t NodeObject::_objectCreate(lwm2m_context_t *contextP,
@@ -637,5 +634,3 @@ NodeObject::~NodeObject()
         delete pair.second;
     }
 }
-
-#endif

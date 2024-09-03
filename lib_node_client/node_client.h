@@ -73,9 +73,6 @@ typedef struct
     lwm2m_connection_layer_t *connLayer;
 } client_data_t;
 
-client_data_t data;
-lwm2m_context_t *lwm2mH = NULL;
-
 /**
  * @brief NodeClient represent a LwM2M client storing every object and resource associated.
  *
@@ -238,7 +235,5 @@ private:
      */
     static void _lwm2mMainThreadTask();
 };
-
-#include "node_client_impl.h"
 
 #endif

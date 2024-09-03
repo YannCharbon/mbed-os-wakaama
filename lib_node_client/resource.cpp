@@ -7,9 +7,6 @@
  *  @date 6/20/2024
  */
 
-#ifndef RESOURCE_IMPL_H
-#define RESOURCE_IMPL_H
-
 #include "resource.h"
 
 Resource::~Resource()
@@ -64,5 +61,3 @@ int Resource::GetErrorCode() {
     _errorCode = RES_SUCCESS;
     return errorCode;
 }
-
-#endif

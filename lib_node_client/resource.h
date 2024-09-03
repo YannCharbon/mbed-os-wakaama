@@ -624,6 +624,4 @@ public:
     }
 };
 
-#include "resource_impl.h"
-
 #endif

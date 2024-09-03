@@ -28,10 +28,10 @@
  *  @date 6/21/2024
  */
 
-#ifndef NODE_CLIENT_IMPL_H
-#define NODE_CLIENT_IMPL_H
-
 #include "node_client.h"
+
+client_data_t data;
+lwm2m_context_t *lwm2mH = NULL;
 
 int NodeClient::InitNetwork()
 {
@@ -317,12 +317,12 @@ int NodeClient::StartClient()
 
     lwm2mMainThread.start(&NodeClient::_lwm2mMainThreadTask);
 
-    //int i = 0;
+    int i = 0;
     while (1)
     {
         ThisThread::sleep_for(1s);
         // Test to update the resource device operating hours on device extension to see if server is able to update the red value
-        //((_objects->at(2))->GetResource(9))->SetValue<int>(i++);
+        ((_objects->at(2))->GetResource(9))->SetValue<int>(i++);
     }
 
     delete objArray;
@@ -533,5 +533,3 @@ void lwm2m_close_connection(void *sessionH,
         }
     }
 }
-
-#endif

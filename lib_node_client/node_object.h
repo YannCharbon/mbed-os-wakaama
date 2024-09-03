@@ -321,6 +321,4 @@ public:
     lwm2m_object_t *Get();
 };
 
-#include "node_object_impl.h"
-
 #endif
