@@ -1,11 +1,11 @@
 /**
  *  Copyright (c) 2024
- * 
+ *
  *  @file object_definition.h
  *  @brief This header file contain one function that dynamically create every object and resource and stores
  *         it in a vector that is returned. This vector is the used when constructing a NodeClient.
  *
- *  @author Bastien Pillonel
+ *  @author Bastien Pillonel <bastien.pillonel@heig-vd.ch>
  *
  */
 
