@@ -1,11 +1,12 @@
 /**
+ *  Copyright (c) 2024
+ * 
  *  @file resource.h
  *  @brief This header file contain the declaration of the resource class representing a generic resource contained in any object
  *  described by the uCIFI standard.
  *
- *  @author Bastien Pillonel
+ *  @author Bastien Pillonel <bastien.pillonel@heig-vd.ch>
  *
- *  @date 4/25/2024
  */
 
 #ifndef RESOURCE_H

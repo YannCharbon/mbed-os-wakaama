@@ -1,10 +1,11 @@
 /**
+ *  Copyright (c) 2024
+ *
  *  @file resource.cpp
  *  @brief This source file contain the definition of resource non template methods.
  *
- *  @author Bastien Pillonel
+ *  @author Bastien Pillonel <bastien.pillonel@heig-vd.ch>
  *
- *  @date 6/20/2024
  */
 
 #include "resource.h"

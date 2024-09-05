@@ -20,12 +20,13 @@
  *******************************************************************************/
 
  /**
+  *  Copyright (c) 2024
+  *
   *  @file node_client.cpp
   *  @brief This source file contains the definition of the client class methods.
   *
-  *  @author Bastien Pillonel
+  *  @author Bastien Pillonel <bastien.pillonel@heig-vd.ch>
   *
-  *  @date 6/21/2024
   */
 
 #include "node_client.h"

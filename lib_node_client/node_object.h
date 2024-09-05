@@ -19,12 +19,13 @@
  *
  *******************************************************************************/
  /**
+  *  Copyright (c) 2024
+  * 
   *  @file node_object.h
   *  @brief This header file contain the declaration of the object class representing a generic object following uCIFI standard
   *
-  *  @author Bastien Pillonel
+  *  @author Bastien Pillonel <bastien.pillonel@heig-vd.ch>
   *
-  *  @date 6/20/2024
   */
 
 #ifndef NODE_OBJECT_H

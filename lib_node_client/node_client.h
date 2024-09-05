@@ -20,12 +20,13 @@
  *******************************************************************************/
 
  /**
+  *  Copyright (c) 2024
+  * 
   *  @file node_client.h
-  *  @brief This header file contain the declaration of the client class representing a LwM2M client.
+  *  @brief This header file contains the declaration of the client class representing a LwM2M client.
   *
-  *  @author Bastien Pillonel
+  *  @author Bastien Pillonel <bastien.pillonel@heig-vd.ch>
   *
-  *  @date 6/21/2024
   */
 
 #ifndef NODE_CLIENT_H

@@ -1,11 +1,12 @@
 /**
+ *  Copyright (c) 2024
+ * 
  *  @file object_definition.cpp
  *  @brief This source file contain one function that dynamically create every object and resource and stores
  *         it in a vector that is returned. This vector is then used when constructing a NodeClient.
  *
- *  @author Bastien Pillonel
+ *  @author Bastien Pillonel <bastien.pillonel@heig-vd.ch>
  *
- *  @date 6/21/2024
  */
 
 #include "objects_definition.h"

@@ -20,12 +20,13 @@
  *******************************************************************************/
 
  /**
+  *  Copyright (c) 2024
+  * 
   *  @file node_object.cpp
   *  @brief This source file contain the definition of the object class methods representing a generic object following uCIFI standard
   *
-  *  @author Bastien Pillonel
+  *  @author Bastien Pillonel <bastien.pillonel@heig-vd.ch>
   *
-  *  @date 6/21/2024
   */
 
 #include "node_object.h"

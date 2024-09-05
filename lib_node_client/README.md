@@ -207,6 +207,8 @@ return new std::vector<NodeObject *>({ ..., timeSynchronisationObject, ...});
 
 ### Steps to create and launch the LwM2M client:
 
+A main program example using the NodeClient can be found in [./example/client.cpp](./example/client.cpp).
+
 1. Call the previously discussed initializedObjects() function.
 
 ```{C}
@@ -230,3 +232,29 @@ client.InitNetwork();
 ```{C}
 client.StartClient();
 ```
+
+### Building
+
+The library use RTTI compiling option. It is needed to delete the flag -fno-rtti in order to use the lib_node_client properly. 
+
+For example the user can create a new compiling profile file into mbed-os directory without the flag -fno-rtti and specify with the ```--profile``` argument the newly created compiling profile file. Compiling profile files are typically stored under ```mbed-os/tools/profiles```.
+
+Main function needs to be guarded with the ```#if !MBED_TEST_MODE``` macro to avoid main function redefinition with unit tests files. 
+
+### Testing
+
+Unit tests have been integrated under the [../greentea-unit-test/TESTS/](../greentea-unit-test/TESTS/) directory. These tests concern the Resource class.
+
+The user is allowed to add other unit tests under this directory. He can then run the tests with the command:
+
+```
+mbed test -n <relative path to test file>
+```
+
+The relative path to test file needs to be lowercase and subdirectory character "/" is replace with "-". To test multiple files at once the user indicate the subdirectory path and complete with "-*" wildcard.
+
+For example:
+
+To test the subdirectory ```greentea-unit-test/TESTS/resource-test-group/```.
+
+The command will be ```mbed test -n greentea-unit-test-tests-resource-test-group-*```.
