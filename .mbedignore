@@ -32,7 +32,7 @@ mbed-os/features/frameworks/COMPONENT_FPGA_CI_TEST_SHIELD/*
 
 
 /* Greentea client */
-mbed-os/features/frameworks/greentea-client/*
+//mbed-os/features/frameworks/greentea-client/*
 
 
 
@@ -103,12 +103,12 @@ mbed-os/UNITTESTS/*
 
 
 /* Unity */
-mbed-os/features/frameworks/unity/*
+//mbed-os/features/frameworks/unity/*
 
 
 
 /* Utest */
-mbed-os/features/frameworks/utest/*
+//mbed-os/features/frameworks/utest/*
 
 
 

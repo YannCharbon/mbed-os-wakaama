@@ -40,3 +40,7 @@ BUILD
 mbed-os
 __pycache__
 _config.yml
+
+# Deploy script
+.envrc
+deploy_dev_env.sh
