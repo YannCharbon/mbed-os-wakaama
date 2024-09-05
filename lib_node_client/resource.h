@@ -582,7 +582,7 @@ public:
         if (!_actionsOnExec)
         {
             _actionsOnExec = new ResCallback<T>();
-        }refer
+        }
 
             return ((ResCallback<T> *)_actionsOnExec)->AddListener(f);
     }
