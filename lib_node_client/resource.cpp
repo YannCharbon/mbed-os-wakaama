@@ -1,6 +1,6 @@
 /**
- *  @file resource_impl.h
- *  @brief This header file contain the definition of resource non template methods.
+ *  @file resource.cpp
+ *  @brief This source file contain the definition of resource non template methods.
  *
  *  @author Bastien Pillonel
  *
@@ -13,7 +13,7 @@ Resource::~Resource()
 {
     if (!_value)
         return;
-    
+
     // Clean ResCallback instance
     delete _actionsOnWrite;
     delete _actionsOnRead;
@@ -32,7 +32,7 @@ bool Resource::Empty() const
 
 const std::type_info &Resource::Type()
 {
-    if(!_value){
+    if (!_value) {
         _errorCode = VALUE_IS_EMPTY;
         return typeid(nullptr);
     }
@@ -44,7 +44,7 @@ const ResourceOp &Resource::GetOp() const
     return _resourceOp;
 }
 
-const std::string &Resource::GetName() const{
+const std::string &Resource::GetName() const {
     return _name;
 }
 
@@ -52,7 +52,7 @@ const Units &Resource::GetUnit() const {
     return _unit;
 }
 
-const size_t &Resource::GetId() const{
+const size_t &Resource::GetId() const {
     return _id;
 }
 

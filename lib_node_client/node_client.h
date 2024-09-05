@@ -19,14 +19,14 @@
  *
  *******************************************************************************/
 
-/**
- *  @file node_client.h
- *  @brief This header file contain the declaration of the client class representing a LwM2M client.
- *
- *  @author Bastien Pillonel
- *
- *  @date 6/21/2024
- */
+ /**
+  *  @file node_client.h
+  *  @brief This header file contain the declaration of the client class representing a LwM2M client.
+  *
+  *  @author Bastien Pillonel
+  *
+  *  @date 6/21/2024
+  */
 
 #ifndef NODE_CLIENT_H
 #define NODE_CLIENT_H
@@ -88,15 +88,15 @@ public:
 
     /**
      * @brief Construct a new Node Client object by copy
-     * 
-     * @param src 
+     *
+     * @param src
      */
     NodeClient(const NodeClient &src) : _objects(src._objects), _eth(src._eth), _url(src._url), _port(src._port), _clientKey(src._clientKey), _endpointName(src._endpointName), _clientIdentity(src._clientIdentity) {}
 
     /**
      * @brief Construct a new Node Client object by moving
-     * 
-     * @param src 
+     *
+     * @param src
      */
     NodeClient(NodeClient &&src) : _objects(std::move(src._objects)), _eth(src._eth), _url(src._url), _port(src._port), _clientKey(src._clientKey), _endpointName(src._endpointName), _clientIdentity(src._clientIdentity) {
         src._eth = nullptr;
@@ -109,14 +109,14 @@ public:
 
     /**
      * @brief Construct a new Node Client object by specific a vector of object stored in the client
-     * 
+     *
      * @param objects respresents a list of objects on the client device.
      */
-    NodeClient(std::vector<NodeObject *> *objects) : _objects(objects), _eth(), _url(""), _port(""), _clientKey(""), _endpointName(""), _clientIdentity("")  {}
+    NodeClient(std::vector<NodeObject *> *objects) : _objects(objects), _eth(), _url(), _port(), _clientKey(), _endpointName(), _clientIdentity() {}
 
     /**
      * @brief Construct a new Node Client object by specific a vector of object stored in the client, a network interface, the server URL and server port
-     * 
+     *
      * @param objects respresents a list of objects on the client device.
      * @param eth network interface for NodeClient
      * @param url server url
@@ -129,13 +129,13 @@ public:
 
     /**
      * @brief Destroy the Node Client object
-     * 
+     *
      */
     ~NodeClient();
 
     /**
      * @brief Setup client to ensure a correct connection with the server
-     * 
+     *
      * @return int error code
      */
     int InitNetwork();
@@ -143,14 +143,14 @@ public:
     /**
      * @brief Let the client connects itself to the server and configuring object so that
      * server can render correct objects that are stored on the client.
-     * 
+     *
      * @return int error code
      */
     int StartClient();
 
     /**
      * @brief Wrapper for incoming packet handler function
-     * 
+     *
      * @param addr address from incoming packet
      * @param buf payload
      * @param len payload length
@@ -159,49 +159,49 @@ public:
 
     /**
      * @brief Set the Objects attribute
-     * 
+     *
      * @param objects vector of NodeObject avaliable on the client
      */
     void SetObjects(std::vector<NodeObject *> *objects);
 
     /**
      * @brief Set the Network Interface attribute
-     * 
-     * @param eth new network interface of NodeClient 
+     *
+     * @param eth new network interface of NodeClient
      */
     void SetNetworkInterface(NetworkInterface *eth);
 
     /**
      * @brief Set the Url object
-     * 
+     *
      * @param url of the LwM2M server
      */
     void SetUrl(const char *url);
 
     /**
      * @brief Set the Port object
-     * 
+     *
      * @param port of the LwM2M server
      */
     void SetPort(const char *port);
 
     /**
      * @brief Set the Client Key object
-     * 
+     *
      * @param clientKey psk client key
      */
     void SetClientKey(char *clientKey);
 
     /**
      * @brief Set the Endpoint Name object
-     * 
+     *
      * @param endpointName endpoint name of client
      */
     void SetEndpointName(char *endpointName);
 
     /**
      * @brief Set the Client Identity object
-     * 
+     *
      * @param clientIdentity psk client identity
      */
     void SetClientIdentity(char *clientIdentity);
@@ -217,21 +217,21 @@ private:
 
     /**
      * @brief Display interface addr infos
-     * 
+     *
      * @param id of interface
      */
     static void _printInterfaceAddr(int id);
 
     /**
      * @brief Display state of client-server LwM2M connection
-     * 
-     * @param lwm2mH context structure for client-server connection state 
+     *
+     * @param lwm2mH context structure for client-server connection state
      */
     static void _printstate(lwm2m_context_t *lwm2mH);
 
     /**
      * @brief Main thread task, send packet to the server and handle timeout depanding on connection state
-     * 
+     *
      */
     static void _lwm2mMainThreadTask();
 };

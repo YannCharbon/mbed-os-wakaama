@@ -1,6 +1,6 @@
 /**
  *  @file object_definition.h
- *  @brief This header file contain one function that dynamically create every object and resource and stores 
+ *  @brief This header file contain one function that dynamically create every object and resource and stores
  *         it in a vector that is returned. This vector is the used when constructing a NodeClient.
  *
  *  @author Bastien Pillonel
@@ -58,6 +58,10 @@
 #define PHOTOCELL_OBJECT_ID 3419
 #define LED_COLOR_OBJECT_ID 3420
 
+/**
+ * @brief Instanciate every NodeObject according to uCIFI standard in one vector
+ * @return vector<NodeObject *> contains NodeObject instances
+*/
 std::vector<NodeObject *> *initializeObjects();
 
 #endif

@@ -19,22 +19,22 @@
  *
  *******************************************************************************/
 
-/**
- *  @file node_object_impl.h
- *  @brief This header file contain the definition of the object class methods representing a generic object following uCIFI standard
- *
- *  @author Bastien Pillonel
- *
- *  @date 6/21/2024
- */
+ /**
+  *  @file node_object.cpp
+  *  @brief This source file contain the definition of the object class methods representing a generic object following uCIFI standard
+  *
+  *  @author Bastien Pillonel
+  *
+  *  @date 6/21/2024
+  */
 
 #include "node_object.h"
 
 uint8_t NodeObject::_objectCreate(lwm2m_context_t *contextP,
-                                  uint16_t instanceId,
-                                  int numData,
-                                  lwm2m_data_t *dataArray,
-                                  lwm2m_object_t *objectP)
+    uint16_t instanceId,
+    int numData,
+    lwm2m_data_t *dataArray,
+    lwm2m_object_t *objectP)
 {
     ObjectList *objectInstance;
     uint8_t result;
@@ -66,8 +66,8 @@ uint8_t NodeObject::_objectCreate(lwm2m_context_t *contextP,
 }
 
 uint8_t NodeObject::_objectDelete(lwm2m_context_t *contextP,
-                                  uint16_t instanceId,
-                                  lwm2m_object_t *objectP)
+    uint16_t instanceId,
+    lwm2m_object_t *objectP)
 {
     ObjectList *objectInstance;
 
@@ -85,10 +85,10 @@ uint8_t NodeObject::_objectDelete(lwm2m_context_t *contextP,
 }
 
 uint8_t NodeObject::_objectDiscover(lwm2m_context_t *contextP,
-                                    uint16_t instanceId,
-                                    int *numDataP,
-                                    lwm2m_data_t **dataArrayP,
-                                    lwm2m_object_t *objectP)
+    uint16_t instanceId,
+    int *numDataP,
+    lwm2m_data_t **dataArrayP,
+    lwm2m_object_t *objectP)
 {
     uint8_t result;
     int i = 0;
@@ -131,10 +131,10 @@ uint8_t NodeObject::_objectDiscover(lwm2m_context_t *contextP,
 }
 
 uint8_t NodeObject::_objectRead(lwm2m_context_t *contextP,
-                                uint16_t instanceId,
-                                int *numDataP,
-                                lwm2m_data_t **dataArrayP,
-                                lwm2m_object_t *objectP)
+    uint16_t instanceId,
+    int *numDataP,
+    lwm2m_data_t **dataArrayP,
+    lwm2m_object_t *objectP)
 {
     ObjectList *objectInstance;
     uint8_t result;
@@ -262,11 +262,11 @@ uint8_t NodeObject::_objectRead(lwm2m_context_t *contextP,
 }
 
 uint8_t NodeObject::_objectWrite(lwm2m_context_t *contextP,
-                                 uint16_t instanceId,
-                                 int numData,
-                                 lwm2m_data_t *dataArray,
-                                 lwm2m_object_t *objectP,
-                                 lwm2m_write_type_t writeType)
+    uint16_t instanceId,
+    int numData,
+    lwm2m_data_t *dataArray,
+    lwm2m_object_t *objectP,
+    lwm2m_write_type_t writeType)
 {
     ObjectList *objectInstance;
     int i;
@@ -407,11 +407,11 @@ uint8_t NodeObject::_objectWrite(lwm2m_context_t *contextP,
 }
 
 uint8_t NodeObject::_objectExec(lwm2m_context_t *contextP,
-                                uint16_t instanceId,
-                                uint16_t resourceId,
-                                uint8_t *buffer,
-                                int length,
-                                lwm2m_object_t *objectP)
+    uint16_t instanceId,
+    uint16_t resourceId,
+    uint8_t *buffer,
+    int length,
+    lwm2m_object_t *objectP)
 {
     ObjectList *objectInstance;
     uint8_t result;
@@ -454,10 +454,10 @@ uint8_t NodeObject::_objectExec(lwm2m_context_t *contextP,
 }
 
 uint8_t NodeObject::objectCreateStatic(lwm2m_context_t *contextP,
-                                       uint16_t instanceId,
-                                       int numData,
-                                       lwm2m_data_t *dataArray,
-                                       lwm2m_object_t *objectP)
+    uint16_t instanceId,
+    int numData,
+    lwm2m_data_t *dataArray,
+    lwm2m_object_t *objectP)
 {
     // Create new instance of object by copy, writing value coming from server will be written inside instance _objectCreate() method
     NodeObject *instance = static_cast<NodeObject *>(objectP->userData);
@@ -466,8 +466,8 @@ uint8_t NodeObject::objectCreateStatic(lwm2m_context_t *contextP,
 }
 
 uint8_t NodeObject::objectDeleteStatic(lwm2m_context_t *contextP,
-                                       uint16_t instanceId,
-                                       lwm2m_object_t *objectP)
+    uint16_t instanceId,
+    lwm2m_object_t *objectP)
 {
     // Not allowed to delete original instance
     if (instanceId == 0)
@@ -488,16 +488,16 @@ uint8_t NodeObject::objectDeleteStatic(lwm2m_context_t *contextP,
 
     // Call delete callback on founded instance, and free memory
     uint8_t result = instance->_objectDelete(contextP, instanceId, objectP);
-    if(instance)
+    if (instance)
         delete instance;
     return result;
 }
 
 uint8_t NodeObject::objectDiscoverStatic(lwm2m_context_t *contextP,
-                                         uint16_t instanceId,
-                                         int *numDataP,
-                                         lwm2m_data_t **dataArrayP,
-                                         lwm2m_object_t *objectP)
+    uint16_t instanceId,
+    int *numDataP,
+    lwm2m_data_t **dataArrayP,
+    lwm2m_object_t *objectP)
 {
     // Find object instance from id
     NodeObject *instance = nullptr;
@@ -515,10 +515,10 @@ uint8_t NodeObject::objectDiscoverStatic(lwm2m_context_t *contextP,
 }
 
 uint8_t NodeObject::objectReadStatic(lwm2m_context_t *contextP,
-                                     uint16_t instanceId,
-                                     int *numDataP,
-                                     lwm2m_data_t **dataArrayP,
-                                     lwm2m_object_t *objectP)
+    uint16_t instanceId,
+    int *numDataP,
+    lwm2m_data_t **dataArrayP,
+    lwm2m_object_t *objectP)
 {
     // Find object instance from id
     NodeObject *instance = nullptr;
@@ -537,11 +537,11 @@ uint8_t NodeObject::objectReadStatic(lwm2m_context_t *contextP,
 }
 
 uint8_t NodeObject::objectWriteStatic(lwm2m_context_t *contextP,
-                                      uint16_t instanceId,
-                                      int numData,
-                                      lwm2m_data_t *dataArray,
-                                      lwm2m_object_t *objectP,
-                                      lwm2m_write_type_t writeType)
+    uint16_t instanceId,
+    int numData,
+    lwm2m_data_t *dataArray,
+    lwm2m_object_t *objectP,
+    lwm2m_write_type_t writeType)
 {
     // Find object from id
     NodeObject *instance = nullptr;
@@ -559,11 +559,11 @@ uint8_t NodeObject::objectWriteStatic(lwm2m_context_t *contextP,
 }
 
 uint8_t NodeObject::objectExecStatic(lwm2m_context_t *contextP,
-                                     uint16_t instanceId,
-                                     uint16_t resourceId,
-                                     uint8_t *buffer,
-                                     int length,
-                                     lwm2m_object_t *objectP)
+    uint16_t instanceId,
+    uint16_t resourceId,
+    uint8_t *buffer,
+    int length,
+    lwm2m_object_t *objectP)
 {
     // Find object from id
     NodeObject *instance = nullptr;

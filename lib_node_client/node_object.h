@@ -18,14 +18,14 @@
  *    Scott Bertin, AMETEK, Inc. - Please refer to git log
  *
  *******************************************************************************/
-/**
- *  @file node_object.h
- *  @brief This header file contain the declaration of the object class representing a generic object following uCIFI standard
- *
- *  @author Bastien Pillonel
- *
- *  @date 6/20/2024
- */
+ /**
+  *  @file node_object.h
+  *  @brief This header file contain the declaration of the object class representing a generic object following uCIFI standard
+  *
+  *  @author Bastien Pillonel
+  *
+  *  @date 6/20/2024
+  */
 
 #ifndef NODE_OBJECT_H
 #define NODE_OBJECT_H
@@ -43,10 +43,10 @@
 
 #include "resource.h"
 
-/**
- * @brief NodeObject class representing an object according to uCIFI standard
- * 
- */
+  /**
+   * @brief NodeObject class representing an object according to uCIFI standard
+   *
+   */
 class NodeObject
 {
 private:
@@ -54,6 +54,9 @@ private:
     size_t _instanceId;
     std::map<size_t, Resource *> _resources;
 
+    /**
+     * @brief C-linked list link to store object instances (with IDs)
+    */
     struct ObjectList
     {
         struct ObjectList *next;
@@ -63,41 +66,41 @@ private:
 
     /**
      * @brief Read callback used when read action is taken on a resource belonging to an object
-     * 
+     *
      * @param contextP structure giving information about client-server connection context
      * @param instanceId object instance id
-     * @param numDataP number of resources concerned by reading action 
+     * @param numDataP number of resources concerned by reading action
      * @param dataArrayP data provided by the client to the server
      * @param objectP structure representing the object
      * @return uint8_t error code
      */
     uint8_t _objectRead(lwm2m_context_t *contextP,
-                        uint16_t instanceId,
-                        int *numDataP,
-                        lwm2m_data_t **dataArrayP,
-                        lwm2m_object_t *objectP);
+        uint16_t instanceId,
+        int *numDataP,
+        lwm2m_data_t **dataArrayP,
+        lwm2m_object_t *objectP);
 
     /**
      * @brief Write callback used when write action is taken on a resource belonging to an object
-     * 
+     *
      * @param contextP structure giving information about client-server connection context
      * @param instanceId object instance id
-     * @param numData number of resources concerned by writing action 
+     * @param numData number of resources concerned by writing action
      * @param dataArray data provided by the server to the client
      * @param objectP structure representing the object
      * @param writeType when writing user is able to choose between replacing or updating the resource
      * @return uint8_t error code
      */
     uint8_t _objectWrite(lwm2m_context_t *contextP,
-                         uint16_t instanceId,
-                         int numData,
-                         lwm2m_data_t *dataArray,
-                         lwm2m_object_t *objectP,
-                         lwm2m_write_type_t writeType);
+        uint16_t instanceId,
+        int numData,
+        lwm2m_data_t *dataArray,
+        lwm2m_object_t *objectP,
+        lwm2m_write_type_t writeType);
 
     /**
-     * @brief Execute callback used when execut action is taken on a resource belonging to an object
-     * 
+     * @brief Execute callback used when execute action is taken on a resource belonging to an object
+     *
      * @param contextP structure giving information about client-server connection context
      * @param instanceId object instance id
      * @param resourceId object resource id
@@ -107,176 +110,176 @@ private:
      * @return uint8_t error code
      */
     uint8_t _objectExec(lwm2m_context_t *contextP,
-                        uint16_t instanceId,
-                        uint16_t resourceId,
-                        uint8_t *buffer,
-                        int length,
-                        lwm2m_object_t *objectP);
+        uint16_t instanceId,
+        uint16_t resourceId,
+        uint8_t *buffer,
+        int length,
+        lwm2m_object_t *objectP);
 
     /**
      * @brief Discover callback is call when configuring object and resource on the server
-     * 
+     *
      * @param contextP structure giving information about client-server connection context
      * @param instanceId object instance id
-     * @param numDataP number of resources concerned by discover action 
+     * @param numDataP number of resources concerned by discover action
      * @param dataArrayP data provided by the server to the client
      * @param objectP structure representing the object
      * @return uint8_t error code
      */
     uint8_t _objectDiscover(lwm2m_context_t *contextP,
-                            uint16_t instanceId,
-                            int *numDataP,
-                            lwm2m_data_t **dataArrayP,
-                            lwm2m_object_t *objectP);
+        uint16_t instanceId,
+        int *numDataP,
+        lwm2m_data_t **dataArrayP,
+        lwm2m_object_t *objectP);
 
     /**
      * @brief Create callback is called when server request to creat a new object on the client.
      * Server only allows user to enter resource writable new value to the new object instance created.
-     * Read resource value will be copied from original object instance and callbacks will be copied too. 
-     * 
+     * Read resource value will be copied from original object instance and callbacks will be copied too.
+     *
      * @param contextP structure giving information about client-server connection context
      * @param instanceId object instance id
-     * @param numData number of resources concerned by discover action 
+     * @param numData number of resources concerned by discover action
      * @param dataArray data provided by the server to the client
      * @param objectP structure representing the object
      * @return uint8_t error code
      */
     uint8_t _objectCreate(lwm2m_context_t *contextP,
-                          uint16_t instanceId,
-                          int numData,
-                          lwm2m_data_t *dataArray,
-                          lwm2m_object_t *objectP);
+        uint16_t instanceId,
+        int numData,
+        lwm2m_data_t *dataArray,
+        lwm2m_object_t *objectP);
 
     /**
      * @brief Delete callback is called when server wants to delete an object instance
-     * 
+     *
      * @param contextP structure giving information about client-server connection context
      * @param instanceId object instance id
      * @param objectP structure representing the object
      * @return uint8_t error code
      */
     uint8_t _objectDelete(lwm2m_context_t *contextP,
-                          uint16_t instanceId,
-                          lwm2m_object_t *objectP);
+        uint16_t instanceId,
+        lwm2m_object_t *objectP);
 
     /**
-     * @brief Static create callback (needed for compatibility with liblwm2m). Create a new object instance from the original. 
-     * 
-     * @param contextP 
-     * @param instanceId 
-     * @param numData 
-     * @param dataArray 
-     * @param objectP 
-     * @return uint8_t 
+     * @brief Static create callback (needed for compatibility with liblwm2m). Create a new object instance from the original.
+     *
+     * @param contextP
+     * @param instanceId
+     * @param numData
+     * @param dataArray
+     * @param objectP
+     * @return uint8_t
      */
     static uint8_t objectCreateStatic(lwm2m_context_t *contextP,
-                                      uint16_t instanceId,
-                                      int numData,
-                                      lwm2m_data_t *dataArray,
-                                      lwm2m_object_t *objectP);
+        uint16_t instanceId,
+        int numData,
+        lwm2m_data_t *dataArray,
+        lwm2m_object_t *objectP);
 
     /**
-     * @brief Static delete callback (needed for compatibility with liblwm2m). Delete corresponding object instance. 
-     * 
-     * @param contextP 
-     * @param instanceId 
-     * @param objectP 
-     * @return uint8_t 
+     * @brief Static delete callback (needed for compatibility with liblwm2m). Delete corresponding object instance.
+     *
+     * @param contextP
+     * @param instanceId
+     * @param objectP
+     * @return uint8_t
      */
     static uint8_t objectDeleteStatic(lwm2m_context_t *contextP,
-                                      uint16_t instanceId,
-                                      lwm2m_object_t *objectP);
+        uint16_t instanceId,
+        lwm2m_object_t *objectP);
 
     /**
-     * @brief Static discover callback (needed for compatibility with liblwm2m). Discover corresponding object instance. 
-     * 
-     * @param contextP 
-     * @param instanceId 
-     * @param numDataP 
-     * @param dataArrayP 
-     * @param objectP 
-     * @return uint8_t 
+     * @brief Static discover callback (needed for compatibility with liblwm2m). Discover corresponding object instance.
+     *
+     * @param contextP
+     * @param instanceId
+     * @param numDataP
+     * @param dataArrayP
+     * @param objectP
+     * @return uint8_t
      */
     static uint8_t objectDiscoverStatic(lwm2m_context_t *contextP,
-                                        uint16_t instanceId,
-                                        int *numDataP,
-                                        lwm2m_data_t **dataArrayP,
-                                        lwm2m_object_t *objectP);
+        uint16_t instanceId,
+        int *numDataP,
+        lwm2m_data_t **dataArrayP,
+        lwm2m_object_t *objectP);
 
     /**
-     * @brief Static read callback (needed for compatibility with liblwm2m). Read corresponding object instance. 
-     * 
-     * @param contextP 
-     * @param instanceId 
-     * @param numDataP 
-     * @param dataArrayP 
-     * @param objectP 
-     * @return uint8_t 
+     * @brief Static read callback (needed for compatibility with liblwm2m). Read corresponding object instance.
+     *
+     * @param contextP
+     * @param instanceId
+     * @param numDataP
+     * @param dataArrayP
+     * @param objectP
+     * @return uint8_t
      */
     static uint8_t objectReadStatic(lwm2m_context_t *contextP,
-                                    uint16_t instanceId,
-                                    int *numDataP,
-                                    lwm2m_data_t **dataArrayP,
-                                    lwm2m_object_t *objectP);
+        uint16_t instanceId,
+        int *numDataP,
+        lwm2m_data_t **dataArrayP,
+        lwm2m_object_t *objectP);
 
     /**
-     * @brief Static write callback (needed for compatibility with liblwm2m). Write corresponding object instance. 
-     * 
-     * @param contextP 
-     * @param instanceId 
-     * @param numData 
-     * @param dataArray 
-     * @param objectP 
-     * @param writeType 
-     * @return uint8_t 
+     * @brief Static write callback (needed for compatibility with liblwm2m). Write corresponding object instance.
+     *
+     * @param contextP
+     * @param instanceId
+     * @param numData
+     * @param dataArray
+     * @param objectP
+     * @param writeType
+     * @return uint8_t
      */
     static uint8_t objectWriteStatic(lwm2m_context_t *contextP,
-                                     uint16_t instanceId,
-                                     int numData,
-                                     lwm2m_data_t *dataArray,
-                                     lwm2m_object_t *objectP,
-                                     lwm2m_write_type_t writeType);
+        uint16_t instanceId,
+        int numData,
+        lwm2m_data_t *dataArray,
+        lwm2m_object_t *objectP,
+        lwm2m_write_type_t writeType);
 
     /**
-     * @brief Static execute callback (needed for compatibility with liblwm2m). Execute corresponding object instance. 
-     * 
-     * @param contextP 
-     * @param instanceId 
-     * @param resourceId 
-     * @param buffer 
-     * @param length 
-     * @param objectP 
-     * @return uint8_t 
+     * @brief Static execute callback (needed for compatibility with liblwm2m). Execute corresponding object instance.
+     *
+     * @param contextP
+     * @param instanceId
+     * @param resourceId
+     * @param buffer
+     * @param length
+     * @param objectP
+     * @return uint8_t
      */
     static uint8_t objectExecStatic(lwm2m_context_t *contextP,
-                                    uint16_t instanceId,
-                                    uint16_t resourceId,
-                                    uint8_t *buffer,
-                                    int length,
-                                    lwm2m_object_t *objectP);
+        uint16_t instanceId,
+        uint16_t resourceId,
+        uint8_t *buffer,
+        int length,
+        lwm2m_object_t *objectP);
 
 public:
     /**
      * @brief Construct a new Node Object object by default
-     * 
+     *
      */
     NodeObject() : _objectId(0), _instanceId(0), _resources({}) {}
 
     /**
      * @brief Construct a new Node Object object by copy
-     * 
-     * @param src 
+     *
+     * @param src
      */
     NodeObject(const NodeObject &src) : _objectId(src._objectId), _instanceId(src._instanceId) {
-        for(auto pair : src._resources){
+        for (auto pair : src._resources) {
             _resources[pair.first] = new Resource(*pair.second);
         }
     }
 
     /**
      * @brief Construct a new Node Object object by moving
-     * 
-     * @param src 
+     *
+     * @param src
      */
     NodeObject(NodeObject &&src) : _objectId(src._objectId), _instanceId(src._instanceId), _resources(std::move(src._resources))
     {
@@ -286,7 +289,7 @@ public:
 
     /**
      * @brief Construct a new Node Object object by specifying attribute
-     * 
+     *
      * @param objId objcet id
      * @param instId object instance id
      * @param resources list of resource instances belonging to object instance
@@ -301,7 +304,7 @@ public:
 
     /**
      * @brief Get the Resource object
-     * 
+     *
      * @param id instance id of object
      * @return Resource* pointer on the object
      */
@@ -309,14 +312,14 @@ public:
 
     /**
      * @brief Destroy the Node Object object
-     * 
+     *
      */
     ~NodeObject();
 
     /**
-     * @brief Get lwm2m_object_t structure represanting our object (used for compatibility with liblwm2m.h)
-     * 
-     * @return lwm2m_object_t* 
+     * @brief Get lwm2m_object_t structure representing an object (used for compatibility with liblwm2m.h)
+     *
+     * @return lwm2m_object_t*
      */
     lwm2m_object_t *Get();
 };

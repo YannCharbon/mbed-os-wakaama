@@ -19,14 +19,14 @@
  *
  *******************************************************************************/
 
-/**
- *  @file node_client_impl.h
- *  @brief This header file contain the definition of the client class methods.
- *
- *  @author Bastien Pillonel
- *
- *  @date 6/21/2024
- */
+ /**
+  *  @file node_client.cpp
+  *  @brief This source file contains the definition of the client class methods.
+  *
+  *  @author Bastien Pillonel
+  *
+  *  @date 6/21/2024
+  */
 
 #include "node_client.h"
 
@@ -94,27 +94,27 @@ void NodeClient::_printstate(lwm2m_context_t *lwm2mH)
     printf("State: ");
     switch (lwm2mH->state)
     {
-    case STATE_INITIAL:
-        printf("STATE_INITIAL");
-        break;
-    case STATE_BOOTSTRAP_REQUIRED:
-        printf("STATE_BOOTSTRAP_REQUIRED");
-        break;
-    case STATE_BOOTSTRAPPING:
-        printf("STATE_BOOTSTRAPPING");
-        break;
-    case STATE_REGISTER_REQUIRED:
-        printf("STATE_REGISTER_REQUIRED");
-        break;
-    case STATE_REGISTERING:
-        printf("STATE_REGISTERING");
-        break;
-    case STATE_READY:
-        printf("STATE_READY");
-        break;
-    default:
-        printf("Unknown !");
-        break;
+        case STATE_INITIAL:
+            printf("STATE_INITIAL");
+            break;
+        case STATE_BOOTSTRAP_REQUIRED:
+            printf("STATE_BOOTSTRAP_REQUIRED");
+            break;
+        case STATE_BOOTSTRAPPING:
+            printf("STATE_BOOTSTRAPPING");
+            break;
+        case STATE_REGISTER_REQUIRED:
+            printf("STATE_REGISTER_REQUIRED");
+            break;
+        case STATE_REGISTERING:
+            printf("STATE_REGISTERING");
+            break;
+        case STATE_READY:
+            printf("STATE_READY");
+            break;
+        default:
+            printf("Unknown !");
+            break;
     }
     printf("\r\n");
 
@@ -134,26 +134,26 @@ void NodeClient::_printstate(lwm2m_context_t *lwm2mH)
             printf("\tstatus: ");
             switch (targetP->status)
             {
-            case STATE_DEREGISTERED:
-                printf("DEREGISTERED\r\n");
-                break;
-            case STATE_BS_HOLD_OFF:
-                printf("CLIENT HOLD OFF\r\n");
-                break;
-            case STATE_BS_INITIATED:
-                printf("BOOTSTRAP INITIATED\r\n");
-                break;
-            case STATE_BS_PENDING:
-                printf("BOOTSTRAP PENDING\r\n");
-                break;
-            case STATE_BS_FINISHED:
-                printf("BOOTSTRAP FINISHED\r\n");
-                break;
-            case STATE_BS_FAILED:
-                printf("BOOTSTRAP FAILED\r\n");
-                break;
-            default:
-                printf("INVALID (%d)\r\n", (int)targetP->status);
+                case STATE_DEREGISTERED:
+                    printf("DEREGISTERED\r\n");
+                    break;
+                case STATE_BS_HOLD_OFF:
+                    printf("CLIENT HOLD OFF\r\n");
+                    break;
+                case STATE_BS_INITIATED:
+                    printf("BOOTSTRAP INITIATED\r\n");
+                    break;
+                case STATE_BS_PENDING:
+                    printf("BOOTSTRAP PENDING\r\n");
+                    break;
+                case STATE_BS_FINISHED:
+                    printf("BOOTSTRAP FINISHED\r\n");
+                    break;
+                case STATE_BS_FAILED:
+                    printf("BOOTSTRAP FAILED\r\n");
+                    break;
+                default:
+                    printf("INVALID (%d)\r\n", (int)targetP->status);
             }
             printf("\r\n");
         }
@@ -172,29 +172,29 @@ void NodeClient::_printstate(lwm2m_context_t *lwm2mH)
             printf("\tstatus: ");
             switch (targetP->status)
             {
-            case STATE_DEREGISTERED:
-                printf("DEREGISTERED\r\n");
-                break;
-            case STATE_REG_PENDING:
-                printf("REGISTRATION PENDING\r\n");
-                break;
-            case STATE_REGISTERED:
-                printf("REGISTERED\tlocation: \"%s\"\tLifetime: %lus\r\n", targetP->location, (unsigned long)targetP->lifetime);
-                break;
-            case STATE_REG_UPDATE_PENDING:
-                printf("REGISTRATION UPDATE PENDING\r\n");
-                break;
-            case STATE_REG_UPDATE_NEEDED:
-                printf("REGISTRATION UPDATE REQUIRED\r\n");
-                break;
-            case STATE_DEREG_PENDING:
-                printf("DEREGISTRATION PENDING\r\n");
-                break;
-            case STATE_REG_FAILED:
-                printf("REGISTRATION FAILED\r\n");
-                break;
-            default:
-                printf("INVALID (%d)\r\n", (int)targetP->status);
+                case STATE_DEREGISTERED:
+                    printf("DEREGISTERED\r\n");
+                    break;
+                case STATE_REG_PENDING:
+                    printf("REGISTRATION PENDING\r\n");
+                    break;
+                case STATE_REGISTERED:
+                    printf("REGISTERED\tlocation: \"%s\"\tLifetime: %lus\r\n", targetP->location, (unsigned long)targetP->lifetime);
+                    break;
+                case STATE_REG_UPDATE_PENDING:
+                    printf("REGISTRATION UPDATE PENDING\r\n");
+                    break;
+                case STATE_REG_UPDATE_NEEDED:
+                    printf("REGISTRATION UPDATE REQUIRED\r\n");
+                    break;
+                case STATE_DEREG_PENDING:
+                    printf("DEREGISTRATION PENDING\r\n");
+                    break;
+                case STATE_REG_FAILED:
+                    printf("REGISTRATION FAILED\r\n");
+                    break;
+                default:
+                    printf("INVALID (%d)\r\n", (int)targetP->status);
             }
             printf("\r\n");
         }
@@ -209,11 +209,11 @@ int NodeClient::StartClient()
         return -1;
     clientStarted = true;
 
-    lwm2m_object_t **objArray = new lwm2m_object_t *[_objects->size() + 1];
+    lwm2m_object_t **objArray = new lwm2m_object_t * [_objects->size() + 1];
     memset(&data, 0, sizeof(client_data_t));
     data.addressFamily = ADDRESS_IPV6;
     int result;
- 
+
 #ifdef USE_DTLS
     // Configure psk id and key when DTLS is requested
     char *pskId = _clientIdentity;
@@ -274,17 +274,13 @@ int NodeClient::StartClient()
     int serverId = 123;
 
     sprintf(serverUri, "coaps://[%s]:%s", _url, _port);
-/*#ifdef USE_DTLS
-    sprintf(serverUri, "coaps://[%s]:%s", M2M_SERVER_URL, SERVER_DTLS_PORT);
-#else
-    sprintf(serverUri, "coap://[%s]:%s", M2M_SERVER_URL, SERVER_PORT);
-#endif*/
+
     // Get object security from object_security.c file 
     objArray[0] = get_security_object(serverId, serverUri, pskId, pskBuffer, pskLen, false);
     data.securityObjP = objArray[0];
 
     // Get object from NodeObject instance stored in the client
-    for (size_t i = 0; i < _objects->size(); ++i)
+    for (unsigned long i = 0; i < _objects->size(); ++i)
     {
         objArray[i + 1] = _objects->at(i)->Get();
         if (!objArray[i + 1])
@@ -317,12 +313,9 @@ int NodeClient::StartClient()
 
     lwm2mMainThread.start(&NodeClient::_lwm2mMainThreadTask);
 
-    int i = 0;
     while (1)
     {
         ThisThread::sleep_for(1s);
-        // Test to update the resource device operating hours on device extension to see if server is able to update the red value
-        ((_objects->at(2))->GetResource(9))->SetValue<int>(i++);
     }
 
     delete objArray;
@@ -362,9 +355,7 @@ void NodeClient::Lwm2mHandleIncomingSocketDataCppWrap(ns_address_t *addr, uint8_
     printf("New packet arrived !\n");
     if (connectionlayer_handle_packet(data.connLayer, addr, buf, len) == -1)
     {
-        
         // This packet comes from an unknown peer
-        
         fprintf(stderr, "received bytes ignored!\r\n");
     }
 
@@ -380,31 +371,31 @@ NodeClient::~NodeClient()
     }
 }
 
-void NodeClient::SetObjects(std::vector<NodeObject *> *objects){
+void NodeClient::SetObjects(std::vector<NodeObject *> *objects) {
     _objects = objects;
 }
 
-void NodeClient::SetNetworkInterface(NetworkInterface *eth){
+void NodeClient::SetNetworkInterface(NetworkInterface *eth) {
     _eth = eth;
 }
 
-void NodeClient::SetUrl(const char *url){
+void NodeClient::SetUrl(const char *url) {
     _url = url;
 }
 
-void NodeClient::SetPort(const char *port){
+void NodeClient::SetPort(const char *port) {
     _port = port;
 }
 
-void NodeClient::SetClientKey(char *clientKey){
+void NodeClient::SetClientKey(char *clientKey) {
     _clientKey = clientKey;
 }
 
-void NodeClient::SetEndpointName(char *endpointName){
+void NodeClient::SetEndpointName(char *endpointName) {
     _endpointName = endpointName;
 }
 
-void NodeClient::SetClientIdentity(char *clientIdentity){
+void NodeClient::SetClientIdentity(char *clientIdentity) {
     _clientIdentity = clientIdentity;
 }
 
@@ -420,13 +411,13 @@ extern "C" void lwm2m_handle_incoming_socket_data(ns_address_t *addr, uint8_t *b
 
 /**
  * @brief External definition of lwm2m_connect_server
- * 
+ *
  * @param secObjInstID id of security object
  * @param userData parameter to lwm2m_init()
  * @return void* connection_t structure about the connection established
  */
 void *lwm2m_connect_server(uint16_t secObjInstID,
-                           void *userData)
+    void *userData)
 {
     client_data_t *dataP;
     char *uri;
@@ -477,7 +468,7 @@ void *lwm2m_connect_server(uint16_t secObjInstID,
 #if defined(USE_DTLS)
     // Create connection with dtls use
     newConnP = (connection_t *)dtlsconnection_create(dataP->connLayer, secObjInstID, dataP->sock, host, port,
-                                                     dataP->addressFamily);
+        dataP->addressFamily);
 #else
     // Create connection without dtls
     newConnP = connection_create(dataP->connLayer, dataP->sock, host, port, dataP->addressFamily);
@@ -499,12 +490,12 @@ exit:
 
 /**
  * @brief Close a session created by lwm2m_connect_server()
- * 
- * @param sessionH session handle identifying the peer 
+ *
+ * @param sessionH session handle identifying the peer
  * @param userData parameter to lwm2m_init()
  */
 void lwm2m_close_connection(void *sessionH,
-                            void *userData)
+    void *userData)
 {
     client_data_t *app_data;
     connection_t *targetP;

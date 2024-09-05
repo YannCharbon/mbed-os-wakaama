@@ -150,8 +150,8 @@ private:
     const ResourceOp _resourceOp;
     const std::string _name;
     const Units _unit;
-    const size_t _id;
     int _errorCode;
+    const size_t _id;
 
     ResCallbackBase *_actionsOnWrite = nullptr;
     ResCallbackBase *_actionsOnRead = nullptr;
@@ -163,20 +163,20 @@ public:
      *
      */
     Resource() : _value(nullptr), _resourceOp(ResourceOp::RES_RD), _name(std::string("")), _unit(Units::NA), _errorCode(RES_SUCCESS), _id(0) {}
-    
+
     /**
      * @brief Construct a new Resource object by copy
-     * 
-     * @param src 
+     *
+     * @param src reference object instance
      */
-    Resource(const Resource &src) : _value(src._copy()), _resourceOp(src._resourceOp), _name(src._name), _unit(src._unit), _id(src._id), _errorCode(RES_SUCCESS), _actionsOnWrite((src._actionsOnWrite ? src._actionsOnWrite->clone() : nullptr)), _actionsOnRead((src._actionsOnRead ? src._actionsOnRead->clone() : nullptr)), _actionsOnExec((src._actionsOnExec ? src._actionsOnExec->clone() : nullptr)) {}
-    
+    Resource(const Resource &src) : _value(src._copy()), _resourceOp(src._resourceOp), _name(src._name), _unit(src._unit), _errorCode(RES_SUCCESS), _id(src._id), _actionsOnWrite((src._actionsOnWrite ? src._actionsOnWrite->clone() : nullptr)), _actionsOnRead((src._actionsOnRead ? src._actionsOnRead->clone() : nullptr)), _actionsOnExec((src._actionsOnExec ? src._actionsOnExec->clone() : nullptr)) {}
+
     /**
      * @brief Construct a new Resource object by moving
-     * 
-     * @param src 
+     *
+     * @param src reference object instance
      */
-    Resource(Resource &&src) : _value(src._value), _resourceOp(src._resourceOp), _name(src._name), _unit(src._unit), _id(src._id), _errorCode(RES_SUCCESS), _actionsOnWrite((src._actionsOnWrite ? src._actionsOnWrite->move() : nullptr)), _actionsOnRead((src._actionsOnRead ? src._actionsOnRead->move() : nullptr)), _actionsOnExec((src._actionsOnExec ? src._actionsOnExec->move() : nullptr))
+    Resource(Resource &&src) : _value(src._value), _resourceOp(src._resourceOp), _name(src._name), _unit(src._unit), _errorCode(RES_SUCCESS), _id(src._id), _actionsOnWrite((src._actionsOnWrite ? src._actionsOnWrite->move() : nullptr)), _actionsOnRead((src._actionsOnRead ? src._actionsOnRead->move() : nullptr)), _actionsOnExec((src._actionsOnExec ? src._actionsOnExec->move() : nullptr))
     {
         src._value = nullptr;
         src._actionsOnWrite = nullptr;
@@ -186,7 +186,7 @@ public:
 
     /**
      * @brief Construct a new Resource object by specifying attribute
-     * 
+     *
      * @tparam T type of value stored in the resource
      * @param src value object stored in the resource
      * @param rights operation allowed on the resource (R/W/E)
@@ -195,17 +195,17 @@ public:
      * @param id resource id
      */
     template <class T>
-    Resource(const T &src, ResourceOp rights = ResourceOp::RES_RD, const std::string &name = std::string("name"), Units unit = Units::NA, size_t id = 0) : _value(new(new(malloc(sizeof(Head) + sizeof(T))) THead<T>() + 1) T(src)), _resourceOp(rights), _name(name), _unit(unit), _id(id), _errorCode(RES_SUCCESS) {}
-    
+    Resource(const T &src, ResourceOp rights = ResourceOp::RES_RD, const std::string &name = std::string("name"), Units unit = Units::NA, size_t id = 0) : _value(new(new(malloc(sizeof(Head) + sizeof(T))) THead<T>() + 1) T(src)), _resourceOp(rights), _name(name), _unit(unit), _errorCode(RES_SUCCESS), _id(id) {}
+
     /**
      * @brief Destroy the Resource object
-     * 
+     *
      */
     ~Resource();
 
     /**
      * @brief Inform if resource instance has no value object
-     * 
+     *
      * @return true value object is empty
      * @return false value object is not empty
      */
@@ -213,49 +213,49 @@ public:
 
     /**
      * @brief Inform on the value object type
-     * 
-     * @return const std::type_info& 
+     *
+     * @return const std::type_info&
      */
     const std::type_info &Type();
 
     /**
      * @brief Get the operation allows on the resource
-     * 
-     * @return const ResourceOp& 
+     *
+     * @return const ResourceOp&
      */
     const ResourceOp &GetOp() const;
 
     /**
      * @brief Get the resource name
-     * 
-     * @return const std::string& 
+     *
+     * @return const std::string&
      */
     const std::string &GetName() const;
 
     /**
      * @brief Get the resource unit
-     * 
-     * @return const Units& 
+     *
+     * @return const Units&
      */
     const Units &GetUnit() const;
 
     /**
      * @brief Get the resource id
-     * 
-     * @return const size_t& 
+     *
+     * @return const size_t&
      */
     const size_t &GetId() const;
 
     /**
      * @brief Get the resource error code
-     * 
-     * @return int 
+     *
+     * @return int
      */
     int GetErrorCode();
 
     /**
      * @brief Get the Value object
-     * 
+     *
      * @tparam T type of value object
      * @return T* pointer on the value object
      */
@@ -281,7 +281,7 @@ public:
 
     /**
      * @brief Set the Value object
-     * 
+     *
      * @tparam T type of value object
      * @param writeValue new value object to store
      * @return int error code
@@ -309,9 +309,9 @@ public:
 
     /**
      * @brief Works as GetValue() function but call read callback functions registered
-     * 
-     * @tparam T 
-     * @return T* 
+     *
+     * @tparam T
+     * @return T*
      */
     template <class T>
     T *Read()
@@ -345,10 +345,10 @@ public:
 
     /**
      * @brief Works as SetValue() function but call write callback functions registered
-     * 
-     * @tparam T 
-     * @param writeValue 
-     * @return int 
+     *
+     * @tparam T
+     * @param writeValue
+     * @return int
      */
     template <class T>
     int Write(const T &writeValue)
@@ -382,9 +382,9 @@ public:
     }
 
     /**
-     * @brief Only call execute callback function registered 
-     * 
-     * @tparam T 
+     * @brief Only call execute callback function registered
+     *
+     * @tparam T
      * @return int error code
      */
     template <class T>
@@ -418,7 +418,7 @@ public:
 
     /**
      * @brief Bind a callback function to the resource instance for write operation
-     * 
+     *
      * @tparam T type of parameter inside callback function
      * @param f callbcak function
      * @return std::shared_ptr<std::function<void(T)>> pointer on the callback function registered
@@ -440,7 +440,7 @@ public:
             return nullptr;
         }
 
-        // Creat a callback object on first bind
+        // Create a callback object on first bind
         if (!_actionsOnWrite)
         {
             _actionsOnWrite = new ResCallback<T>();
@@ -451,7 +451,7 @@ public:
 
     /**
      * @brief Remove callback registered previously using pointer on that callback for write operation
-     * 
+     *
      * @tparam T type of parameter inside callback function
      * @param fp pointer on the callback function
      * @return int error code
@@ -487,7 +487,7 @@ public:
 
     /**
      * @brief Bind a callback function to the resource instance for read operation
-     * 
+     *
      * @tparam T type of parameter inside callback function
      * @param f callbcak function
      * @return std::shared_ptr<std::function<void(T)>> pointer on the callback function registered
@@ -509,7 +509,7 @@ public:
             return nullptr;
         }
 
-        // Creat a callback object on first bind
+        // Create a callback object on first bind
         if (!_actionsOnRead)
         {
             _actionsOnRead = new ResCallback<T>();
@@ -520,7 +520,7 @@ public:
 
     /**
      * @brief Remove callback registered previously using pointer on that callback for write operation
-     * 
+     *
      * @tparam T type of parameter inside callback function
      * @param fp pointer on the callback function
      * @return int error code
@@ -556,7 +556,7 @@ public:
 
     /**
      * @brief Bind a callback function to the resource instance for execute operation
-     * 
+     *
      * @tparam T type of parameter inside callback function
      * @param f callbcak function
      * @return std::shared_ptr<std::function<void(T)>> pointer on the callback function registered
@@ -578,18 +578,18 @@ public:
             return nullptr;
         }
 
-        // Creat a callback object on first bind
+        // Create a callback object on first bind
         if (!_actionsOnExec)
         {
             _actionsOnExec = new ResCallback<T>();
-        }
+        }refer
 
-        return ((ResCallback<T> *)_actionsOnExec)->AddListener(f);
+            return ((ResCallback<T> *)_actionsOnExec)->AddListener(f);
     }
 
     /**
      * @brief Remove callback registered previously using pointer on that callback for write operation
-     * 
+     *
      * @tparam T type of parameter inside callback function
      * @param fp pointer on the callback function
      * @return int error code

@@ -1,7 +1,7 @@
 /**
- *  @file object_definition.h
- *  @brief This header file contain one function that dynamically create every object and resource and stores 
- *         it in a vector that is returned. This vector is the used when constructing a NodeClient.
+ *  @file object_definition.cpp
+ *  @brief This source file contain one function that dynamically create every object and resource and stores
+ *         it in a vector that is returned. This vector is then used when constructing a NodeClient.
  *
  *  @author Bastien Pillonel
  *
@@ -23,7 +23,7 @@ std::vector<NodeObject *> *initializeObjects()
     Resource *binding = new Resource(std::string(PRV_BINDING), ResourceOp::RES_RDWR, "Binding", Units::NA, 7);
     Resource *registrationUpdateTrigger = new Resource(0, ResourceOp::RES_E, "Registration update trigger", Units::NA, 8);
 
-    std::vector<Resource *> serverResources = {shortServerId, lifetime, defaultMinimumPeriod, defaultMaximumPeriod, disable, disableTimeout, notificationStoringWhenDisabledOrOffline, binding, registrationUpdateTrigger};
+    std::vector<Resource *> serverResources = { shortServerId, lifetime, defaultMinimumPeriod, defaultMaximumPeriod, disable, disableTimeout, notificationStoringWhenDisabledOrOffline, binding, registrationUpdateTrigger };
     NodeObject *serverObject = new NodeObject(SERVER_OBJECT_ID, 0, serverResources);
 
     // ================================== OBJECT DEVICE ==============================
@@ -33,9 +33,9 @@ std::vector<NodeObject *> *initializeObjects()
     Resource *firmwareVersion = new Resource(std::string(PRV_FIRMWARE_VERSION), ResourceOp::RES_RD, PRV_FIRMWARE_VERSION, Units::NA, 3);
     Resource *reboot = new Resource(0, ResourceOp::RES_E, "Reboot", Units::NA, 4);
     Resource *factoryReset = new Resource(0, ResourceOp::RES_E, "Factory reset", Units::NA, 5);
-    std::map<size_t, Resource *> availablePowerSourceInst = {{0, new Resource(0, ResourceOp::RES_RD, "Available power source 1", Units::NA, 6)},
+    std::map<size_t, Resource *> availablePowerSourceInst = { {0, new Resource(0, ResourceOp::RES_RD, "Available power source 1", Units::NA, 6)},
                                                              {1, new Resource(1, ResourceOp::RES_RD, "Available power source 2", Units::NA, 6)},
-                                                             {2, new Resource(2, ResourceOp::RES_RD, "Available power source 3", Units::NA, 6)}};
+                                                             {2, new Resource(2, ResourceOp::RES_RD, "Available power source 3", Units::NA, 6)} };
     Resource *availablePowerSource = new Resource(availablePowerSourceInst, ResourceOp::RES_RD, "Available power source", Units::NA, 6);
     Resource *powerSourceVoltage = new Resource(0, ResourceOp::RES_RD, "Power source voltage", Units::VOLT, 7);
     Resource *powerSourceCurrent = new Resource(0, ResourceOp::RES_RD, "Power source current", Units::AMPER, 8);
@@ -55,9 +55,9 @@ std::vector<NodeObject *> *initializeObjects()
     Resource *extdevinfo = new Resource(0, ResourceOp::RES_RD, "External device info", Units::NA, 22);
 
     manufacturer->BindOnRead<std::string>([](std::string str)
-                                          { std::cout << "Manufacturer read get : " << str << std::endl; });
+        { std::cout << "Manufacturer read get : " << str << std::endl; });
 
-    std::vector<Resource *> deviceResources = {manufacturer, modelNumber, serialNumber, firmwareVersion, reboot, factoryReset, availablePowerSource, powerSourceVoltage, powerSourceCurrent, serverBatteryLevel, memoryFree, errorCode, resetErrorCode, currentTime, utcOffset, timezone, supportedBindingMode, deviceType, hardwareVersion, softwareVersion, batteryStatus, memoryTotal, extdevinfo};
+    std::vector<Resource *> deviceResources = { manufacturer, modelNumber, serialNumber, firmwareVersion, reboot, factoryReset, availablePowerSource, powerSourceVoltage, powerSourceCurrent, serverBatteryLevel, memoryFree, errorCode, resetErrorCode, currentTime, utcOffset, timezone, supportedBindingMode, deviceType, hardwareVersion, softwareVersion, batteryStatus, memoryTotal, extdevinfo };
     NodeObject *deviceObject = new NodeObject(DEVICE_OBJECT_ID, 0, deviceResources);
 
     // ================================== OBJECT DEVICE EXTENSION ==============================
@@ -72,7 +72,7 @@ std::vector<NodeObject *> *initializeObjects()
     Resource *deviceOperatingHours = new Resource(0, ResourceOp::RES_RD, "Device operating hours", Units::HOURS, 9);
     Resource *additionalFirmwareInfo = new Resource(std::string(""), ResourceOp::RES_RD, "Additional firmware information", Units::NA, 10);
 
-    std::vector<Resource *> deviceExtensionResources = {gtinModelNumber, manufacturerIdentifier, userGivenName, assetIdentifier, installationDate, softwareUpdate, maintenance, configurationReset, deviceOperatingHours, additionalFirmwareInfo};
+    std::vector<Resource *> deviceExtensionResources = { gtinModelNumber, manufacturerIdentifier, userGivenName, assetIdentifier, installationDate, softwareUpdate, maintenance, configurationReset, deviceOperatingHours, additionalFirmwareInfo };
     NodeObject *deviceExtensionObject = new NodeObject(DEVICE_EXTENSION_OBJECT_ID, 0, deviceExtensionResources);
 
     // ================================== OBJECT BATTERY ==============================
@@ -89,14 +89,14 @@ std::vector<NodeObject *> *initializeObjects()
     Resource *supplyLossCounterReset = new Resource(0, ResourceOp::RES_E, "Supply loss counter reset", Units::NA, 11);
     Resource *supplyLossReason = new Resource(std::string(""), ResourceOp::RES_RD, "Supply loss reason", Units::NA, 12);
 
-    std::vector<Resource *> batteryResources = {batteryLevel, batteryCapacity, batteryVoltage, typeOfBattery, lowBatteryThreshold, batteryLevelTooLow, batteryShutdown, numberOfCycles, supplyLoss, supplyLossCounter, supplyLossCounterReset, supplyLossReason};
+    std::vector<Resource *> batteryResources = { batteryLevel, batteryCapacity, batteryVoltage, typeOfBattery, lowBatteryThreshold, batteryLevelTooLow, batteryShutdown, numberOfCycles, supplyLoss, supplyLossCounter, supplyLossCounterReset, supplyLossReason };
     NodeObject *batteryObject = new NodeObject(BATTERY_OBJECT_ID, 0, batteryResources);
 
     // ================================== OBJECT LPWAN ==============================
     Resource *typeOfNetwork = new Resource(std::string(""), ResourceOp::RES_RD, "Type of network", Units::NA, 1);
-    std::map<size_t, Resource *> ipv4AddressInst = {{0, new Resource(std::string("192.168.0.1"), ResourceOp::RES_RDWR, "ipv4Address 1", Units::NA, 0)},
+    std::map<size_t, Resource *> ipv4AddressInst = { {0, new Resource(std::string("192.168.0.1"), ResourceOp::RES_RDWR, "ipv4Address 1", Units::NA, 0)},
                                                     {1, new Resource(std::string("10.10.10.54"), ResourceOp::RES_RDWR, "ipv4Address 2", Units::NA, 1)},
-                                                    {2, new Resource(std::string("178.129.0.3"), ResourceOp::RES_RDWR, "ipv4Address 3", Units::NA, 2)}};
+                                                    {2, new Resource(std::string("178.129.0.3"), ResourceOp::RES_RDWR, "ipv4Address 3", Units::NA, 2)} };
     Resource *ipv4Address = new Resource(ipv4AddressInst, ResourceOp::RES_RDWR, "IPv4 address", Units::NA, 2);
     Resource *ipv6Address = new Resource(std::string(""), ResourceOp::RES_RDWR, "IPv6 address", Units::NA, 3);
     Resource *networkAddress = new Resource(std::string(""), ResourceOp::RES_RDWR, "Network address", Units::NA, 4);
@@ -121,7 +121,7 @@ std::vector<NodeObject *> *initializeObjects()
     Resource *currentCommunicationOperator = new Resource(std::string(""), ResourceOp::RES_RD, "Current Communication Operator", Units::NA, 23);
     Resource *integratedCircuitCardIdentifier = new Resource(std::string(""), ResourceOp::RES_RD, "Integrated Circuit Card Identifier", Units::NA, 24);
 
-    std::vector<Resource *> lpwanResources = {typeOfNetwork, ipv4Address, ipv6Address, networkAddress, secondaryNetworkAddress, macAddress, peerAddress, multicastGroupAddress, multicastGroupKey, dataRate, transmitPower, frequency, sessionTime, sessionDuration, meshNode, maximumRepeatTime, numberOfRepeats, signalToNoiseRatio, communicationFailure, receivedSignalStrengthIndication, imsi, imei, currentCommunicationOperator, integratedCircuitCardIdentifier};
+    std::vector<Resource *> lpwanResources = { typeOfNetwork, ipv4Address, ipv6Address, networkAddress, secondaryNetworkAddress, macAddress, peerAddress, multicastGroupAddress, multicastGroupKey, dataRate, transmitPower, frequency, sessionTime, sessionDuration, meshNode, maximumRepeatTime, numberOfRepeats, signalToNoiseRatio, communicationFailure, receivedSignalStrengthIndication, imsi, imei, currentCommunicationOperator, integratedCircuitCardIdentifier };
     NodeObject *lpwanObject = new NodeObject(LPWAN_OBJECT_ID, 0, lpwanResources);
 
     // ================================== OBJECT DATA BRIDGE ==============================
@@ -132,7 +132,7 @@ std::vector<NodeObject *> *initializeObjects()
     Resource *cumulatedDailyDataVolumeTotal = new Resource(0, ResourceOp::RES_RD, "Cumulated daily data volume total", Units::BYTES, 5);
     Resource *communicationError = new Resource(false, ResourceOp::RES_RD, "Communication error", Units::NA, 6);
 
-    std::vector<Resource *> dataBridgeResources = {payload, hash, cumulatedDailyDataVolumeUp, cumulatedDailyDataVolumeDown, cumulatedDailyDataVolumeTotal, communicationError};
+    std::vector<Resource *> dataBridgeResources = { payload, hash, cumulatedDailyDataVolumeUp, cumulatedDailyDataVolumeDown, cumulatedDailyDataVolumeTotal, communicationError };
     NodeObject *dataBridgeObject = new NodeObject(DATA_BRIDGE_OBJECT_ID, 0, dataBridgeResources);
 
     // ================================== OBJECT TIME SYNCHONISATION ==============================
@@ -142,7 +142,7 @@ std::vector<NodeObject *> *initializeObjects()
     Resource *lastTimeSync = new Resource(0, ResourceOp::RES_RD, "Last time sync", Units::HOURS, 4);
     Resource *timeSyncError = new Resource(false, ResourceOp::RES_RD, "Time sync error", Units::NA, 5);
 
-    std::vector<Resource *> timeSynchronisationResources = {ntpServerAddress, backupNtpServerAddress, ntpPeriod, lastTimeSync, timeSyncError};
+    std::vector<Resource *> timeSynchronisationResources = { ntpServerAddress, backupNtpServerAddress, ntpPeriod, lastTimeSync, timeSyncError };
     NodeObject *timeSynchronisationObject = new NodeObject(TIME_SYNCHRONISATION_OBJECT_ID, 0, timeSynchronisationResources);
 
     // ================================== OBJECT OUTDOOR LAMP CONTROLER ==============================
@@ -158,8 +158,8 @@ std::vector<NodeObject *> *initializeObjects()
     Resource *dayBurner = new Resource(false, ResourceOp::RES_RD, "Day burner", Units::NA, 10);
     Resource *cyclingFailure = new Resource(false, ResourceOp::RES_RD, "Cycling failure", Units::NA, 11);
     Resource *controlGearCommunicationFailure = new Resource(false, ResourceOp::RES_RD, "Control gear communication failure", Units::NA, 12);
-    std::map<size_t, Resource *> schedulerIDInst = {{0, new Resource(2, ResourceOp::RES_RDWR, "schedulerIDInst 1", Units::NA, 0)},
-                                                    {1, new Resource(4, ResourceOp::RES_RDWR, "schedulerIDInst 2", Units::NA, 1)}};
+    std::map<size_t, Resource *> schedulerIDInst = { {0, new Resource(2, ResourceOp::RES_RDWR, "schedulerIDInst 1", Units::NA, 0)},
+                                                    {1, new Resource(4, ResourceOp::RES_RDWR, "schedulerIDInst 2", Units::NA, 1)} };
     Resource *schedulerID = new Resource(schedulerIDInst, ResourceOp::RES_RDWR, "Scheduler ID", Units::NA, 13);
     Resource *invalidScheduler = new Resource(false, ResourceOp::RES_RD, "Invalid scheduler", Units::NA, 14);
     Resource *lampOperatingHours = new Resource(0, ResourceOp::RES_RD, "Lamp operating hours", Units::HOURS, 15);
@@ -197,7 +197,7 @@ std::vector<NodeObject *> *initializeObjects()
     Resource *lightSourceActiveEnergy = new Resource(0.0f, ResourceOp::RES_RD, "Light source active energy", Units::KILOWATT_HOUR, 47);
 
     controlGearThermalDeratingCounterReset->BindOnExec<int>([](int a)
-                                                            { std::cout << "Control gear thermal derating counter reset value : " << a << std::endl; });
+        { std::cout << "Control gear thermal derating counter reset value : " << a << std::endl; });
 
     std::vector<Resource *> outdoorLampControllerResources = {
         command, commandInAction, dimmingLevel, defaultDimmingLevel, lampFailure, lampFailureReason,
@@ -212,7 +212,7 @@ std::vector<NodeObject *> *initializeObjects()
         controlType, nominalLampWattage, minimumDimmingLevel, minimumLampWattage,
         lightColorTemperatureCommand, actualLightColorTemperature, virtualPowerOutput,
         voltageAtMaxDimLevel, voltageAtMinDimLevel, lightSourceVoltage, lightSourceCurrent,
-        lightSourceActivePower, lightSourceActiveEnergy};
+        lightSourceActivePower, lightSourceActiveEnergy };
     NodeObject *outdoorLampControllerObject = new NodeObject(OUTDOOR_LAMP_CONTROLLER_OBJECT_ID, 0, outdoorLampControllerResources);
 
     // ================================== OBJECT LUMINAIR ASSETS ==============================
@@ -234,7 +234,7 @@ std::vector<NodeObject *> *initializeObjects()
     std::vector<Resource *> luminaireAssestsResources = {
         assetGTIN, yearOfManufacture, weekOfManufacture, nominalLightOutput, lightDistributionType,
         luminaireColor, nominalInputPower, powerAtMinimumDimLevel, nominalMaxACMainsVoltage,
-        nominalMinACMainsVoltage, cri, cctValue, luminaireIdentification, luminaireIdentificationNumber};
+        nominalMinACMainsVoltage, cri, cctValue, luminaireIdentification, luminaireIdentificationNumber };
     NodeObject *luminaireAssetObject = new NodeObject(LUMINAIR_ASSET_OBJECT_ID, 0, luminaireAssestsResources);
 
     // ================================== OBJECT DIGITAL INPUT ==================================
@@ -254,7 +254,7 @@ std::vector<NodeObject *> *initializeObjects()
     std::vector<Resource *> digitalInputResources = {
         digitalInputState, digitalInputCounter, digitalInputPolarity, digitalInputDebounce,
         digitalInputEdgeSelection, digitalInputCounterReset, applicationType, sensorType,
-        digitalInputFailureCheckPeriod, digitalInputFailure, digitalInputLevelSelection, digitalInputSelection};
+        digitalInputFailureCheckPeriod, digitalInputFailure, digitalInputLevelSelection, digitalInputSelection };
 
     NodeObject *digitalInputObject = new NodeObject(DIGITAL_INPUT_OBJECT_ID, 0, digitalInputResources);
 
@@ -264,7 +264,7 @@ std::vector<NodeObject *> *initializeObjects()
     Resource *outputApplicationType = new Resource(std::string(""), ResourceOp::RES_RDWR, "Application Type", Units::NA, 5750);
 
     std::vector<Resource *> digitalOutputResources = {
-        digitalOutputState, digitalOutputPolarity, outputApplicationType};
+        digitalOutputState, digitalOutputPolarity, outputApplicationType };
 
     NodeObject *digitalOutputObject = new NodeObject(DIGITAL_OUTPUT_OBJECT_ID, 0, digitalOutputResources);
 
@@ -280,7 +280,7 @@ std::vector<NodeObject *> *initializeObjects()
 
     std::vector<Resource *> analogInputResources = {
         analogInputCurrentValue, minMeasuredValue, maxMeasuredValue, minRangeValue, maxRangeValue,
-        analogInputApplicationType, analogSensorType, resetMinMaxMeasuredValues};
+        analogInputApplicationType, analogSensorType, resetMinMaxMeasuredValues };
 
     NodeObject *analogInputObject = new NodeObject(ANALOG_INPUT_OBJECT_ID, 0, analogInputResources);
 
@@ -297,7 +297,7 @@ std::vector<NodeObject *> *initializeObjects()
 
     std::vector<Resource *> sensorResources = {
         sensorValue, sensorUnits, genericMinMeasuredValue, genericMaxMeasuredValue, genericMinRangeValue,
-        genericMaxRangeValue, sensorApplicationType, genericSensorType, genericResetMinMaxMeasuredValues};
+        genericMaxRangeValue, sensorApplicationType, genericSensorType, genericResetMinMaxMeasuredValues };
 
     NodeObject *sensorObject = new NodeObject(SENSOR_OBJECT_ID, 0, sensorResources);
 
@@ -310,7 +310,7 @@ std::vector<NodeObject *> *initializeObjects()
     Resource *actuatorInvalidScheduler = new Resource(false, ResourceOp::RES_RD, "Invalid scheduler", Units::NA, 6);
 
     std::vector<Resource *> genericActuatorResources = {
-        actuatorDefaultDimmingLevel, actuatorDimmingLevel, actuatorCommand, actuatorCommandInAction, actuatorSchedulerID, actuatorInvalidScheduler};
+        actuatorDefaultDimmingLevel, actuatorDimmingLevel, actuatorCommand, actuatorCommandInAction, actuatorSchedulerID, actuatorInvalidScheduler };
 
     NodeObject *genericActuatorObject = new NodeObject(GENERIC_ACTUATOR_OBJECT_ID, 0, genericActuatorResources);
 
@@ -352,7 +352,7 @@ std::vector<NodeObject *> *initializeObjects()
         highPowerThreshold, highPowerThresholdAtLowDimLevel, highPower, lowCurrentThreshold, lowCurrent,
         highCurrentThreshold, highCurrent, lowVoltageThreshold, lowVoltage, highVoltageThreshold, highVoltage,
         criticalInrushCurrentThreshold, criticalInrushCurrent, minimumInrushCurrent, maximumInrushCurrent,
-        latestInrushCurrent, reactivePower, reactiveEnergy};
+        latestInrushCurrent, reactivePower, reactiveEnergy };
 
     NodeObject *electricalMeasurementObject = new NodeObject(ELECTRICAL_MEASUREMENT_OBJECT_ID, 0, electricalMeasurementResources);
 
@@ -361,16 +361,16 @@ std::vector<NodeObject *> *initializeObjects()
     Resource *offLuxLevel = new Resource(0.0f, ResourceOp::RES_RDWR, "OFF lux level", Units::LX, 2);
     Resource *photocellStatus = new Resource(false, ResourceOp::RES_RD, "Photocell status", Units::NA, 3);
 
-    std::vector<Resource *> photocellResources = {onLuxLevel, offLuxLevel, photocellStatus};
+    std::vector<Resource *> photocellResources = { onLuxLevel, offLuxLevel, photocellStatus };
 
     NodeObject *photocellObject = new NodeObject(PHOTOCELL_OBJECT_ID, 0, photocellResources);
 
     // ================================== OBJECT LED COLOR ==================================
     Resource *rgbValue = new Resource(std::string(""), ResourceOp::RES_RDWR, "RGB value", Units::NA, 1);
 
-    std::vector<Resource *> ledColorResource = {rgbValue};
+    std::vector<Resource *> ledColorResource = { rgbValue };
 
     NodeObject *ledColorObject = new NodeObject(LED_COLOR_OBJECT_ID, 0, ledColorResource);
 
-    return new std::vector<NodeObject *>({serverObject, deviceObject, deviceExtensionObject, batteryObject, lpwanObject, dataBridgeObject, timeSynchronisationObject, outdoorLampControllerObject, luminaireAssetObject, digitalInputObject, digitalOutputObject, analogInputObject, sensorObject, genericActuatorObject, electricalMeasurementObject, photocellObject, ledColorObject});
+    return new std::vector<NodeObject *>({ serverObject, deviceObject, deviceExtensionObject, batteryObject, lpwanObject, dataBridgeObject, timeSynchronisationObject, outdoorLampControllerObject, luminaireAssetObject, digitalInputObject, digitalOutputObject, analogInputObject, sensorObject, genericActuatorObject, electricalMeasurementObject, photocellObject, ledColorObject });
 }
